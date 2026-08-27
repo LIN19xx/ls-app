@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>初中历史 · 真题练习（可编辑 + 批量管理）</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Roboto, system-ui, sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 16px; }
+        .container { background: #ffffff; width: 100%; max-width: 900px; padding: 28px 26px 32px; border-radius: 24px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08); }
+        h1 { font-size: 24px; text-align: center; color: #1e2a3a; margin: 0 0 4px 0; }
+        .subhead { text-align: center; font-size: 14px; color: #7f8c8d; margin-bottom: 16px; border-bottom: 1px solid #ecf0f1; padding-bottom: 12px; }
+
+        .top-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+        .top-actions .btn { padding: 8px 18px; }
+
+        .mode-tabs { display: flex; gap: 4px; background: #f0f2f5; border-radius: 12px; padding: 4px; margin-bottom: 14px; }
+        .mode-tab { padding: 9px 18px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; background: transparent; color: #5a6a7a; transition: 0.25s; white-space: nowrap; }
+        .mode-tab:hover { color: #1e2a3a; }
+        .mode-tab.active { background: #fff; color: #1e2a3a; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .mode-tab .icon { margin-right: 6px; }
+
+        .top-bar { display: flex; flex-wrap: wrap; gap: 10px 14px; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .top-bar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .top-bar-left label { font-weight: 600; color: #2c3e50; font-size: 14px; }
+        .module-select { padding: 7px 14px; border-radius: 8px; border: 2px solid #dce1e8; font-size: 14px; background: #fff; outline: none; cursor: pointer; min-width: 150px; }
+        .module-select:focus { border-color: #3498db; }
+        .module-tag { font-size: 13px; background: #eaf2f8; padding: 2px 16px; border-radius: 20px; color: #1e2a3a; font-weight: 500; white-space: nowrap; }
+
+        .info-row { display: flex; justify-content: space-between; font-size: 14px; color: #5a6a7a; margin-bottom: 6px; }
+        .progress { background: #ecf0f1; height: 6px; border-radius: 4px; margin-bottom: 18px; overflow: hidden; }
+        .progress-bar { height: 100%; background: #3498db; width: 0%; transition: width 0.35s ease; }
+
+        .question-box { background: #f8f9fc; padding: 22px 20px; border-radius: 14px; margin-bottom: 16px; border-left: 5px solid #3498db; min-height: 100px; position: relative; }
+        .question-label { font-size: 13px; color: #7f8c8d; margin-bottom: 6px; font-weight: 500; }
+        .question-text { font-size: 20px; font-weight: 600; color: #1e2a3a; line-height: 1.6; }
+        .question-text .edit-mode { display: none; }
+        .question-text .display-mode { display: block; }
+        .question-text.editing .edit-mode { display: block; }
+        .question-text.editing .display-mode { display: none; }
+        .question-text input, .question-text textarea { width: 100%; padding: 8px 12px; font-size: 16px; border: 2px solid #dce1e8; border-radius: 8px; outline: none; font-family: inherit; margin-top: 6px; }
+        .question-text input:focus, .question-text textarea:focus { border-color: #3498db; }
+
+        .edit-btn { position: absolute; top: 16px; right: 16px; background: #ecf0f1; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; color: #2c3e50; }
+        .edit-btn:hover { background: #dde1e3; }
+        .edit-btn.save-mode { background: #2ecc71; color: #fff; }
+        .edit-btn.save-mode:hover { background: #27ae60; }
+
+        .input-area { display: flex; gap: 10px; margin: 12px 0 16px; }
+        .input-area input { flex: 1; padding: 12px 16px; font-size: 16px; border: 2px solid #dce1e8; border-radius: 10px; outline: none; transition: 0.2s; background: #fff; }
+        .input-area input:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.15); }
+        .input-area input:disabled { background: #f0f2f5; cursor: not-allowed; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 16px; }
+        @media (max-width: 520px) { .options-grid { grid-template-columns: 1fr; } }
+        .option-btn { padding: 14px 16px; border: 2px solid #dce1e8; border-radius: 10px; background: #fff; font-size: 15px; font-weight: 500; color: #1e2a3a; cursor: pointer; transition: 0.2s; text-align: left; display: flex; align-items: center; gap: 8px; line-height: 1.4; }
+        .option-btn:hover:not(.disabled-opt) { border-color: #3498db; background: #f0f7fe; }
+        .option-btn .opt-label { display: inline-block; width: 26px; height: 26px; border-radius: 50%; background: #ecf0f1; text-align: center; line-height: 26px; font-size: 13px; font-weight: 700; color: #2c3e50; flex-shrink: 0; }
+        .option-btn.correct { border-color: #27ae60; background: #d5f5e3; }
+        .option-btn.correct .opt-label { background: #27ae60; color: #fff; }
+        .option-btn.wrong { border-color: #e74c3c; background: #fadbd8; }
+        .option-btn.wrong .opt-label { background: #e74c3c; color: #fff; }
+        .option-btn.show-correct { border-color: #27ae60; background: #d5f5e3; }
+        .option-btn.show-correct .opt-label { background: #27ae60; color: #fff; }
+        .option-btn.disabled-opt { cursor: default; opacity: 0.7; }
+
+        .btn { padding: 10px 22px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: #3498db; color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: #2980b9; }
+        .btn-success { background: #2ecc71; color: #fff; }
+        .btn-success:hover:not(:disabled) { background: #27ae60; }
+        .btn-warning { background: #f1c40f; color: #1e2a3a; }
+        .btn-warning:hover:not(:disabled) { background: #f39c12; }
+        .btn-secondary { background: #ecf0f1; color: #2c3e50; }
+        .btn-secondary:hover:not(:disabled) { background: #dde1e3; }
+        .btn-danger { background: #e74c3c; color: #fff; }
+        .btn-danger:hover:not(:disabled) { background: #c0392b; }
+        .btn-group { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+        .btn-sm { padding: 5px 14px; font-size: 13px; }
+
+        .feedback { padding: 14px 18px; border-radius: 10px; margin: 12px 0 16px; display: none; font-size: 15px; line-height: 1.8; background: #f8f9fa; border-left: 5px solid #7f8c8d; }
+        .feedback .ref-answer { font-weight: 700; color: #2c3e50; }
+        .feedback .user-answer { font-weight: 500; color: #2980b9; }
+        .feedback .feedback-actions { margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .feedback .baidu-btn { margin-top: 8px; display: inline-block; padding: 6px 16px; background: #4e9bff; color: #fff; border-radius: 20px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s; }
+        .feedback .baidu-btn:hover { background: #3a7bd5; }
+        .feedback .baidu-tip { margin-top: 6px; font-size: 13px; color: #7f8c8d; }
+        .feedback.correct { border-left-color: #27ae60; background: #d5f5e3; }
+        .feedback .answer { font-weight: 700; color: #1e2a3a; }
+
+        .stats { text-align: center; margin-top: 18px; font-size: 14px; color: #5a6a7a; border-top: 1px solid #ecf0f1; padding-top: 16px; }
+        .stats strong { color: #1e2a3a; }
+        .hidden { display: none !important; }
+        .resume-banner { background: #eaf2f8; border-radius: 12px; padding: 12px 18px; margin-bottom: 16px; display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; border: 1px solid #d4e2f0; }
+        .resume-banner span { font-size: 14px; color: #1e2a3a; }
+        .resume-banner .btn-sm { padding: 6px 16px; font-size: 13px; }
+
+        /* 管理模态框 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; overflow: auto; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: white; border-radius: 16px; max-width: 98%; width: 1200px; padding: 20px 24px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ecf0f1; padding-bottom: 12px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+        .modal-header h2 { font-size: 22px; }
+        .modal-header .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .modal-body { overflow: auto; flex: 1; }
+        .modal-body table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 800px; }
+        .modal-body th { background: #f8f9fa; padding: 8px 6px; border-bottom: 2px solid #ddd; text-align: left; position: sticky; top: 0; z-index: 2; white-space: nowrap; }
+        .modal-body td { padding: 6px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        .modal-body input, .modal-body select { width: 100%; padding: 4px 6px; border: 1px solid #dce1e8; border-radius: 4px; font-size: 13px; box-sizing: border-box; background: white; }
+        .modal-body input:focus, .modal-body select:focus { border-color: #3498db; outline: none; }
+        .modal-body .row-actions { display: flex; gap: 4px; }
+        .modal-body .row-actions .btn { padding: 2px 8px; font-size: 12px; }
+        .modal-footer { border-top: 2px solid #ecf0f1; padding-top: 14px; margin-top: 16px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+        .btn-close { background: #e74c3c; color: white; }
+        .btn-close:hover { background: #c0392b; }
+
+        .import-options { display: flex; gap: 10px; margin: 8px 0; }
+        .import-options label { cursor: pointer; }
+        .import-options input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app">
+    <h1>📜 初中历史 · 真题练习</h1>
+    <div class="subhead">填空 / 选择 ｜ 可编辑题库 ｜ 百度验证</div>
+
+    <div class="resume-banner" id="resumeBanner">
+        <span>📂 检测到上次未完成的进度，是否继续？</span>
+        <div>
+            <button class="btn btn-primary btn-sm" id="resumeYes">继续</button>
+            <button class="btn btn-secondary btn-sm" id="resumeNo">重新开始</button>
+        </div>
+    </div>
+
+    <div class="top-actions">
+        <div class="mode-tabs" role="tablist">
+            <button class="mode-tab active" data-mode="fill" id="tabFill"><span class="icon">✍️</span> 填空</button>
+            <button class="mode-tab" data-mode="choice" id="tabChoice"><span class="icon">🧩</span> 选择</button>
+        </div>
+        <div>
+            <button class="btn btn-warning" id="manageBtn">📚 管理题库</button>
+        </div>
+    </div>
+
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <label for="moduleSelect">📚 模块</label>
+            <select id="moduleSelect" class="module-select">
+                <option value="全部">全部（综合）</option>
+                <option value="一、原因与背景">一、原因与背景</option>
+                <option value="二、影响与意义">二、影响与意义</option>
+                <option value="三、性质与特征">三、性质与特征</option>
+                <option value="四、变化与趋势">四、变化与趋势</option>
+                <option value="五、启示与感悟">五、启示与感悟</option>
+                <option value="六、观点小论文">六、观点小论文</option>
+                <option value="七、专题固化搭配">七、专题固化搭配</option>
+                <option value="八、答题三维公式">八、答题三维公式</option>
+            </select>
+            <span class="module-tag" id="currentModuleTag">全部</span>
+        </div>
+        <button class="btn btn-warning" id="wrongReviewBtn">📕 错题重练 (<span id="wrongCount">0</span>)</button>
+    </div>
+
+    <div class="info-row">
+        <span id="progressText">第 1 / 0 题</span>
+        <span id="scoreText">✅ 0 正确</span>
+    </div>
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+    <div class="question-box" id="questionBox">
+        <div class="question-label" id="qLabel">📖 请根据题意填写正确答案：</div>
+        <div class="question-text" id="questionDisplay">
+            <span class="display-mode">加载中...</span>
+            <div class="edit-mode">
+                <label style="font-size:14px;font-weight:500;">题目内容：</label>
+                <input type="text" id="editQ" placeholder="修改题目..." />
+                <label style="font-size:14px;font-weight:500;margin-top:8px;display:block;">参考答案：</label>
+                <input type="text" id="editA" placeholder="修改参考答案..." />
+                <div style="margin-top:8px;font-size:12px;color:#7f8c8d;">修改后自动保存</div>
+            </div>
+        </div>
+        <button class="edit-btn" id="editToggleBtn" title="编辑题目">✏️</button>
+    </div>
+
+    <div id="fillArea" class="input-area">
+        <input type="text" id="answerInput" placeholder="输入答案..." autofocus />
+        <button class="btn btn-primary" id="submitBtn">提交</button>
+    </div>
+
+    <div id="choiceArea" class="hidden">
+        <div class="options-grid" id="optionsContainer"></div>
+    </div>
+
+    <div class="feedback" id="feedback">
+        <span id="feedbackMsg"></span>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn btn-success" id="nextBtn" disabled>下一题 →</button>
+        <button class="btn btn-secondary" id="resetBtn">🔄 重新开始</button>
+    </div>
+
+    <div class="stats" id="finalStats"></div>
+</div>
+
+<!-- ======================== 管理题库模态框 ======================== -->
+<div class="modal-overlay" id="manageModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h2>📚 题库管理</h2>
+            <div class="actions">
+                <button class="btn btn-primary btn-sm" id="addRowBtn">➕ 新增行</button>
+                <button class="btn btn-success btn-sm" id="exportCsvBtn">📤 导出 CSV</button>
+                <button class="btn btn-warning btn-sm" id="importCsvBtn">📥 导入 CSV</button>
+                <input type="file" id="csvFileInput" accept=".csv" style="display:none;" />
+                <button class="btn btn-danger btn-sm" id="closeModalBtn">✖ 关闭</button>
+            </div>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:40px;">#</th>
+                        <th style="width:60px;">类型</th>
+                        <th>题目内容</th>
+                        <th style="width:120px;">答案</th>
+                        <th style="width:100px;">模块</th>
+                        <th style="width:100px;">选项（选填）</th>
+                        <th style="width:80px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="manageTableBody">
+                    <!-- 动态生成 -->
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-success" id="saveManageBtn">💾 保存所有更改</button>
+            <button class="btn btn-secondary" id="closeModalBtn2">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    //  修正后的题库（初中历史真题）
+    //  修改内容：
+    //  1. “解放战争全面进攻失败标志”改为“全面进攻破产（或重点进攻开始）”
+    //  2. “康熙帝派谁征战”改为“康熙帝亲征”
+    // ============================================================
+	
+    let allQuestions = [
+        // ---- 填空 ----
+        // 一、原因与背景
+        { type: 'fill', q: '秦朝灭亡后，刘邦和项羽为争夺帝位进行了长达四年的战争，史称什么？', a: '楚汉之争', module: '一、原因与背景' },
+        { type: 'fill', q: '东汉末年为统一北方奠定基础的战役是什么？', a: '官渡之战', module: '一、原因与背景' },
+        { type: 'fill', q: '北宋建立后，宋太祖为加强中央集权，采纳赵普建议，通过什么方式解除了禁军将领的兵权？', a: '杯酒释兵权', module: '一、原因与背景' },
+        { type: 'fill', q: '明朝中期，为加强皇权，明太祖朱元璋废除了什么制度？', a: '丞相制度', module: '一、原因与背景' },
+        // ★ 修正：康熙帝亲征
+        { type: 'fill', q: '清朝康熙帝为巩固统一，平定准噶尔部叛乱，采取了什么军事行动？', a: '康熙帝亲征', module: '一、原因与背景' },
+        { type: 'fill', q: '鸦片战争爆发的直接原因是什么？', a: '林则徐虎门销烟', module: '一、原因与背景' },
+        { type: 'fill', q: '太平天国运动兴起的根本原因是什么？', a: '阶级矛盾尖锐', module: '一、原因与背景' },
+        { type: 'fill', q: '洋务运动的根本目的是什么？', a: '维护清朝统治（或自强求富）', module: '一、原因与背景' },
+        { type: 'fill', q: '辛亥革命爆发的历史背景包括哪两大运动？', a: '维新变法和义和团运动', module: '一、原因与背景' },
+        { type: 'fill', q: '五四运动爆发的直接导火索是什么？', a: '巴黎和会上中国外交失败', module: '一、原因与背景' },
+        { type: 'fill', q: '中国共产党的诞生是中国历史上什么意义上的大事？', a: '开天辟地', module: '一、原因与背景' },
+        { type: 'fill', q: '抗日战争全面爆发的标志是什么？', a: '卢沟桥事变（七七事变）', module: '一、原因与背景' },
+        // ★ 修正：解放战争全面进攻失败标志
+        { type: 'fill', q: '解放战争时期，国民党军队全面进攻解放区的失败标志是什么？', a: '全面进攻破产（或重点进攻开始）', module: '一、原因与背景' },
+        // 二、影响与意义
+        { type: 'fill', q: '北魏孝文帝改革的历史意义是什么？', a: '促进了民族交融（或加速了北方民族封建化）', module: '二、影响与意义' },
+        { type: 'fill', q: '隋朝大运河的开通起了什么作用？', a: '促进了南北经济交流（或巩固了统一）', module: '二、影响与意义' },
+        { type: 'fill', q: '唐朝安史之乱的影响是什么？', a: '唐朝由盛转衰（或导致藩镇割据）', module: '二、影响与意义' },
+        { type: 'fill', q: '郑和下西洋的历史意义是什么？', a: '促进了中外经济文化交流（或宣扬了国威）', module: '二、影响与意义' },
+        { type: 'fill', q: '辛亥革命的历史意义是什么？', a: '推翻了清王朝，结束了封建帝制', module: '二、影响与意义' },
+        { type: 'fill', q: '新文化运动的历史作用是什么？', a: '动摇了封建思想的统治地位（或促进了思想解放）', module: '二、影响与意义' },
+        { type: 'fill', q: '红军长征胜利的历史意义是什么？', a: '保存了革命力量（或打开了中国革命的新局面）', module: '二、影响与意义' },
+        { type: 'fill', q: '抗日战争胜利的历史意义是什么？', a: '中华民族由衰败走向振兴的转折点（或提高了国际地位）', module: '二、影响与意义' },
+        { type: 'fill', q: '三大改造的完成有什么历史意义？', a: '标志着社会主义基本制度在我国建立', module: '二、影响与意义' },
+        // 三、性质与特征
+        { type: 'fill', q: '秦朝在地方实行的行政制度是什么？', a: '郡县制', module: '三、性质与特征' },
+        { type: 'fill', q: '元朝在中央设置的中枢机构是什么？', a: '中书省', module: '三、性质与特征' },
+        { type: 'fill', q: '明朝特务机构有哪些？', a: '锦衣卫（或东厂）', module: '三、性质与特征' },
+        { type: 'fill', q: '清朝康熙帝在雅克萨之战后，与俄国签订了什么条约？', a: '尼布楚条约', module: '三、性质与特征' },
+        { type: 'fill', q: '洋务运动的口号是什么？', a: '自强、求富', module: '三、性质与特征' },
+        { type: 'fill', q: '戊戌变法的性质是什么？', a: '资产阶级维新运动（或自上而下的改良）', module: '三、性质与特征' },
+        { type: 'fill', q: '五四运动的性质是什么？', a: '彻底的反帝反封建的爱国运动', module: '三、性质与特征' },
+        { type: 'fill', q: '中国新民主主义革命开始的标志是什么？', a: '五四运动', module: '三、性质与特征' },
+        // 四、变化与趋势
+        { type: 'fill', q: '中国古代政治制度的演变趋势是什么？', a: '皇权不断加强，相权不断削弱（或中央集权不断加强）', module: '四、变化与趋势' },
+        { type: 'fill', q: '中国近代化探索的历程分为哪几个阶段？', a: '洋务运动、戊戌变法、辛亥革命、新文化运动', module: '四、变化与趋势' },
+        { type: 'fill', q: '中国从封建社会向半殖民地半封建社会转变的标志事件是什么？', a: '鸦片战争', module: '四、变化与趋势' },
+        { type: 'fill', q: '中国民族资本主义发展的特点是什么？', a: '艰难曲折（或发展不平衡）', module: '四、变化与趋势' },
+        { type: 'fill', q: '世界近代史中，人类从分散走向整体的事件是什么？', a: '新航路开辟', module: '四、变化与趋势' },
+        // 五、启示与感悟
+        { type: 'fill', q: '从清朝闭关锁国政策得到的启示是什么？', a: '闭关锁国导致落后，要对外开放（或坚持改革开放）', module: '五、启示与感悟' },
+        { type: 'fill', q: '从戊戌变法的失败中得到的历史教训是什么？', a: '资产阶级改良道路在中国行不通', module: '五、启示与感悟' },
+        { type: 'fill', q: '从红军长征中你学习到什么精神？', a: '不怕困难、不怕牺牲、艰苦奋斗的精神', module: '五、启示与感悟' },
+        { type: 'fill', q: '从抗日战争胜利中得到的启示是什么？', a: '团结就是力量（或坚持民族统一战线）', module: '五、启示与感悟' },
+        { type: 'fill', q: '从中国近代史中，你得到的最深刻的教训是什么？', a: '落后就要挨打，发展才是硬道理', module: '五、启示与感悟' },
+        // 六、观点小论文
+        { type: 'fill', q: '丝绸之路是古代东西方____的桥梁。', a: '文化交流', module: '六、观点小论文' },
+        { type: 'fill', q: '郑和下西洋体现了中国____的外交政策。', a: '和平', module: '六、观点小论文' },
+        { type: 'fill', q: '新文化运动提倡的两面大旗是“民主”与“____”。', a: '科学', module: '六、观点小论文' },
+        { type: 'fill', q: '延安时期，中国共产党确立的指导思想是什么？', a: '毛泽东思想', module: '六、观点小论文' },
+        { type: 'fill', q: '邓小平在中共十二大上提出的重要理论是什么？', a: '建设有中国特色的社会主义', module: '六、观点小论文' },
+        // 七、专题固化搭配
+        { type: 'fill', q: '中国近代史中，向西方学习的进程是“由浅入深、____”。', a: '由表及里', module: '七、专题固化搭配' },
+        { type: 'fill', q: '抗日战争胜利后，中国面临两种命运，即“民主”与“____”。', a: '专制', module: '七、专题固化搭配' },
+        { type: 'fill', q: '中国共产党的宗旨是“全心全意为____”。', a: '人民服务', module: '七、专题固化搭配' },
+        { type: 'fill', q: '改革开放以来，我国国民经济持续快速健康发展，综合国力____。', a: '不断增强', module: '七、专题固化搭配' },
+        // 八、答题三维公式
+        { type: 'fill', q: '分析历史事件通常从哪些角度入手？', a: '政治、经济、思想文化', module: '八、答题三维公式' },
+        { type: 'fill', q: '历史事件的影响通常包括政治影响、经济影响和____影响。', a: '思想文化', module: '八、答题三维公式' },
+
+        // ---- 选择题（均已核对，准确无误） ----
+        // 一、原因与背景
+        { type: 'choice', stem: '秦朝灭亡后，刘邦和项羽争夺帝位的战争被称为（  ）', options: ['楚汉之争', '官渡之战', '赤壁之战', '淝水之战'], answer: 0, module: '一、原因与背景' },
+        { type: 'choice', stem: '东汉末年为统一北方打下基础的战役是（  ）', options: ['巨鹿之战', '官渡之战', '赤壁之战', '淝水之战'], answer: 1, module: '一、原因与背景' },
+        { type: 'choice', stem: '北宋建立后，宋太祖为加强中央集权采取的措施是（  ）', options: ['设立三公九卿', '杯酒释兵权', '实行科举制', '推行行省制'], answer: 1, module: '一、原因与背景' },
+        { type: 'choice', stem: '明太祖朱元璋为加强皇权，废除了（  ）', options: ['丞相制度', '三省六部制', '行省制度', '科举制度'], answer: 0, module: '一、原因与背景' },
+        { type: 'choice', stem: '鸦片战争爆发的直接原因是（  ）', options: ['林则徐虎门销烟', '清政府腐败', '英国工业革命', '中国闭关锁国'], answer: 0, module: '一、原因与背景' },
+        { type: 'choice', stem: '太平天国运动兴起的主要原因是（  ）', options: ['阶级矛盾尖锐', '自然灾害', '西方列强侵略', '清政府腐败'], answer: 0, module: '一、原因与背景' },
+        // 二、影响与意义
+        { type: 'choice', stem: '北魏孝文帝改革的历史意义是（  ）', options: ['促进了民族交融', '完成了全国统一', '开创了科举制', '推行了行省制'], answer: 0, module: '二、影响与意义' },
+        { type: 'choice', stem: '隋朝大运河开通的历史作用是（  ）', options: ['促进了南北经济交流', '加强了中央集权', '开创了科举制度', '推动了民族交融'], answer: 0, module: '二、影响与意义' },
+        { type: 'choice', stem: '唐朝安史之乱后，唐朝走向（  ）', options: ['繁荣富强', '由盛转衰', '灭亡', '统一'], answer: 1, module: '二、影响与意义' },
+        { type: 'choice', stem: '郑和下西洋的历史意义是（  ）', options: ['促进了中外经济文化交流', '发现了新大陆', '开始了殖民扩张', '推动了工业革命'], answer: 0, module: '二、影响与意义' },
+        { type: 'choice', stem: '辛亥革命的历史意义是（  ）', options: ['推翻了清王朝，结束了封建帝制', '完成了民主革命', '实现了民族独立', '建立了社会主义制度'], answer: 0, module: '二、影响与意义' },
+        // 三、性质与特征
+        { type: 'choice', stem: '秦朝在地方实行的行政制度是（  ）', options: ['分封制', '郡县制', '行省制', '三公九卿制'], answer: 1, module: '三、性质与特征' },
+        { type: 'choice', stem: '元朝在中央设置的中枢机构是（  ）', options: ['中书省', '门下省', '尚书省', '枢密院'], answer: 0, module: '三、性质与特征' },
+        { type: 'choice', stem: '明朝的特务机构包括（  ）', options: ['锦衣卫', '东厂', '西厂', '以上都是'], answer: 3, module: '三、性质与特征' },
+        { type: 'choice', stem: '清朝康熙帝与俄国签订的第一个边界条约是（  ）', options: ['尼布楚条约', '南京条约', '北京条约', '瑷珲条约'], answer: 0, module: '三、性质与特征' },
+        { type: 'choice', stem: '洋务运动的口号是（  ）', options: ['自强、求富', '民主、科学', '扶清灭洋', '维新变法'], answer: 0, module: '三、性质与特征' },
+        // 四、变化与趋势
+        { type: 'choice', stem: '中国古代政治制度的演变趋势是（  ）', options: ['皇权不断加强，相权不断削弱', '相权不断加强，皇权不断削弱', '皇权和相权均等', '皇权和相权合作'], answer: 0, module: '四、变化与趋势' },
+        { type: 'choice', stem: '中国近代化探索的历程顺序是（  ）', options: ['洋务运动—戊戌变法—辛亥革命—新文化运动', '戊戌变法—洋务运动—辛亥革命—新文化运动', '辛亥革命—戊戌变法—洋务运动—新文化运动', '新文化运动—洋务运动—戊戌变法—辛亥革命'], answer: 0, module: '四、变化与趋势' },
+        { type: 'choice', stem: '中国从封建社会向半殖民地半封建社会转变的标志是（  ）', options: ['鸦片战争', '第二次鸦片战争', '甲午战争', '八国联军侵华'], answer: 0, module: '四、变化与趋势' },
+        // 五、启示与感悟
+        { type: 'choice', stem: '从清朝闭关锁国政策得到的启示是（  ）', options: ['要对外开放', '要坚持闭关锁国', '要抵制外国文化', '要实行计划经济'], answer: 0, module: '五、启示与感悟' },
+        { type: 'choice', stem: '从红军长征中我们学习到的精神是（  ）', options: ['不怕困难、艰苦奋斗', '坐享其成', '保守落后', '闭关自守'], answer: 0, module: '五、启示与感悟' },
+        // 六、观点小论文
+        { type: 'choice', stem: '丝绸之路是古代东西方（  ）的桥梁。', options: ['文化交流', '军事冲突', '殖民扩张', '宗教战争'], answer: 0, module: '六、观点小论文' },
+        { type: 'choice', stem: '郑和下西洋体现了中国（  ）的外交政策。', options: ['和平', '侵略', '扩张', '结盟'], answer: 0, module: '六、观点小论文' },
+        // 七、专题固化搭配
+        { type: 'choice', stem: '中国近代史中，向西方学习的过程是“由浅入深、____”。', options: ['由表及里', '由内到外', '由点及面', '由大到小'], answer: 0, module: '七、专题固化搭配' },
+        // 八、答题三维公式
+        { type: 'choice', stem: '分析历史事件通常从哪些角度入手？', options: ['政治、经济、思想文化', '政治、军事、科技', '经济、文化、外交', '军事、科技、思想'], answer: 0, module: '八、答题三维公式' }
+    ];
+    // 添加 id
+    allQuestions.forEach((q, idx) => q.id = idx);
+
+    // ============================================================
+    // 2. 状态管理
+    // ============================================================
+    let state = {
+        mode: 'fill',
+        module: '全部',
+        questionIds: [],
+        currentIndex: 0,
+        score: 0,
+        wrongIds: [],
+        answered: false,
+        isWrongReview: false,
+        isEditing: false,
+    };
+
+    function getQuestionById(id) { return allQuestions.find(q => q.id === id); }
+    function getQuestionIdsForCurrent() {
+        let pool = allQuestions.filter(q => q.type === state.mode);
+        if (state.module !== '全部') {
+            pool = pool.filter(q => q.module === state.module);
+        }
+        return pool.map(q => q.id);
+    }
+    function getCurrentQuestions() { return state.questionIds.map(id => getQuestionById(id)).filter(Boolean); }
+
+    // ============================================================
+    // 3. DOM 引用
+    // ============================================================
+    const tabFill = document.getElementById('tabFill'), tabChoice = document.getElementById('tabChoice');
+    const moduleSelect = document.getElementById('moduleSelect'), currentModuleTag = document.getElementById('currentModuleTag');
+    const questionDisplay = document.getElementById('questionDisplay'), qLabel = document.getElementById('qLabel');
+    const answerInput = document.getElementById('answerInput'), submitBtn = document.getElementById('submitBtn');
+    const nextBtn = document.getElementById('nextBtn'), resetBtn = document.getElementById('resetBtn');
+    const feedback = document.getElementById('feedback'), feedbackMsg = document.getElementById('feedbackMsg');
+    const progressText = document.getElementById('progressText'), scoreText = document.getElementById('scoreText');
+    const progressBar = document.getElementById('progressBar'), finalStats = document.getElementById('finalStats');
+    const fillArea = document.getElementById('fillArea'), choiceArea = document.getElementById('choiceArea');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const wrongReviewBtn = document.getElementById('wrongReviewBtn'), wrongCountSpan = document.getElementById('wrongCount');
+    const resumeBanner = document.getElementById('resumeBanner'), resumeYes = document.getElementById('resumeYes'), resumeNo = document.getElementById('resumeNo');
+    const editToggleBtn = document.getElementById('editToggleBtn');
+    const editQ = document.getElementById('editQ');
+    const editA = document.getElementById('editA');
+
+    // 管理模态框元素
+    const manageModal = document.getElementById('manageModal');
+    const manageTableBody = document.getElementById('manageTableBody');
+    const manageBtn = document.getElementById('manageBtn');
+    const closeModalBtns = document.querySelectorAll('#closeModalBtn, #closeModalBtn2');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const saveManageBtn = document.getElementById('saveManageBtn');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    const importCsvBtn = document.getElementById('importCsvBtn');
+    const csvFileInput = document.getElementById('csvFileInput');
+
+    // ============================================================
+    // 4. 核心逻辑（原功能保留）
+    // ============================================================
+    function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+
+    function init(keepWrong = false) {
+        if (!keepWrong) state.wrongIds = [];
+        state.isWrongReview = false;
+        state.isEditing = false;
+        exitEditMode();
+        const ids = getQuestionIdsForCurrent();
+        state.questionIds = shuffle(ids);
+        state.currentIndex = 0;
+        state.score = 0;
+        state.answered = false;
+        finalStats.textContent = '';
+        feedback.className = 'feedback';
+        feedback.style.display = 'none';
+        answerInput.disabled = false;
+        submitBtn.disabled = false;
+        nextBtn.disabled = true;
+        answerInput.value = '';
+        currentModuleTag.textContent = state.module;
+        if (state.mode === 'fill') {
+            fillArea.classList.remove('hidden');
+            choiceArea.classList.add('hidden');
+            qLabel.textContent = '📖 请根据题意填写正确答案：';
+            answerInput.placeholder = '输入答案...';
+            answerInput.focus();
+        } else {
+            fillArea.classList.add('hidden');
+            choiceArea.classList.remove('hidden');
+            qLabel.textContent = '🧩 选择正确答案：';
+            optionsContainer.innerHTML = '';
+        }
+        showQuestion();
+        updateStats();
+        updateWrongCount();
+        saveState();
+        if (state.mode === 'fill') answerInput.focus();
+    }
+
+    function showQuestion() {
+        const questions = getCurrentQuestions();
+        if (questions.length === 0) {
+            questionDisplay.querySelector('.display-mode').textContent = '⚠️ 该模块暂无题目，请选择其他模块或切换模式。';
+            progressText.textContent = `0 / 0 题`;
+            progressBar.style.width = '0%';
+            if (state.mode === 'choice') optionsContainer.innerHTML = '';
+            editToggleBtn.style.display = 'none';
+            return;
+        }
+        if (state.currentIndex < questions.length) {
+            const q = questions[state.currentIndex];
+            if (state.mode === 'fill') {
+                questionDisplay.querySelector('.display-mode').textContent = q.q;
+                editQ.value = q.q;
+                editA.value = q.a;
+                optionsContainer.innerHTML = '';
+                answerInput.disabled = false;
+                submitBtn.disabled = false;
+                editToggleBtn.style.display = 'flex';
+            } else {
+                questionDisplay.querySelector('.display-mode').textContent = q.stem;
+                editQ.value = q.stem;
+                editA.value = q.options ? q.options[q.answer] : '';
+                renderOptions(q);
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+                editToggleBtn.style.display = 'flex';
+            }
+            progressText.textContent = `第 ${state.currentIndex + 1} / ${questions.length} 题`;
+            progressBar.style.width = `${((state.currentIndex) / questions.length) * 100}%`;
+        } else {
+            if (state.mode === 'fill') questionDisplay.querySelector('.display-mode').textContent = '🎉 恭喜你完成本模块所有填空练习！';
+            else questionDisplay.querySelector('.display-mode').textContent = '🎉 恭喜你完成本模块所有选择题！';
+            answerInput.disabled = true; submitBtn.disabled = true; nextBtn.disabled = true;
+            progressText.textContent = `完成！`; progressBar.style.width = '100%';
+            if (state.mode === 'choice') optionsContainer.innerHTML = '';
+            editToggleBtn.style.display = 'none';
+            const total = questions.length;
+            const correct = state.score;
+            finalStats.textContent = `总题数 ${total}，答对 ${correct} 题，正确率 ${total > 0 ? Math.round(correct / total * 100) : 0}%`;
+            saveState();
+        }
+    }
+
+    function renderOptions(q) {
+        optionsContainer.innerHTML = '';
+        const labels = ['A', 'B', 'C', 'D'];
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.dataset.idx = idx;
+            btn.innerHTML = `<span class="opt-label">${labels[idx]}</span><span>${opt}</span>`;
+            btn.addEventListener('click', () => handleChoiceClick(idx, q));
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function enterEditMode() {
+        state.isEditing = true;
+        questionDisplay.classList.add('editing');
+        editToggleBtn.textContent = '💾';
+        editToggleBtn.classList.add('save-mode');
+        answerInput.disabled = true;
+        submitBtn.disabled = true;
+        if (state.mode === 'choice') {
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.add('disabled-opt'));
+        }
+    }
+
+    function exitEditMode() {
+        state.isEditing = false;
+        questionDisplay.classList.remove('editing');
+        editToggleBtn.textContent = '✏️';
+        editToggleBtn.classList.remove('save-mode');
+        if (!state.answered) {
+            answerInput.disabled = false;
+            submitBtn.disabled = false;
+            if (state.mode === 'choice') {
+                document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('disabled-opt'));
+            }
+        }
+    }
+
+    function saveEdit() {
+        const questions = getCurrentQuestions();
+        if (questions.length === 0 || state.currentIndex >= questions.length) return;
+        const q = questions[state.currentIndex];
+        const newQ = editQ.value.trim();
+        const newA = editA.value.trim();
+        if (!newQ || !newA) {
+            alert('题目内容和参考答案都不能为空！');
+            return;
+        }
+        const original = getQuestionById(q.id);
+        if (original) {
+            if (state.mode === 'fill') {
+                original.q = newQ;
+                original.a = newA;
+            } else {
+                original.stem = newQ;
+                alert('选择题目前仅支持编辑题干，选项修改请通过管理界面。');
+                return;
+            }
+            saveAllQuestionsToStorage();
+            showQuestion();
+            exitEditMode();
+        }
+    }
+
+    editToggleBtn.addEventListener('click', function() {
+        if (!state.isEditing) {
+            enterEditMode();
+        } else {
+            saveEdit();
+        }
+    });
+
+    // 百度搜索
+    function searchBaidu(questionContent, answer) {
+        const query = `${questionContent} ${answer} 历史解释`;
+        const url = 'https://www.baidu.com/s?wd=' + encodeURIComponent(query);
+        window.open(url, '_blank');
+        const tip = document.createElement('div');
+        tip.className = 'baidu-tip';
+        tip.textContent = '✅ 已打开百度搜索，搜索词为“' + query + '”，请查看历史解释以验证答案。';
+        const oldTip = feedback.querySelector('.baidu-tip');
+        if (oldTip) oldTip.remove();
+        feedback.appendChild(tip);
+    }
+
+    function createSelfEvalButtons(q, userAnswer, correctAnswer, questionContent) {
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'feedback-actions';
+        actionsDiv.innerHTML = `
+            <button class="btn btn-success btn-sm" data-self="correct">✅ 我答对了</button>
+            <button class="btn btn-danger btn-sm" data-self="wrong">❌ 我答错了</button>
+            <button class="baidu-btn" id="baiduBtn">🔍 百度一下（查解释）</button>
+        `;
+        const oldActions = feedback.querySelector('.feedback-actions');
+        if (oldActions) oldActions.remove();
+        feedback.appendChild(actionsDiv);
+
+        actionsDiv.querySelector('[data-self="correct"]').addEventListener('click', () => {
+            state.score++;
+            updateStats();
+            const idx = state.wrongIds.indexOf(q.id);
+            if (idx > -1) state.wrongIds.splice(idx, 1);
+            feedback.className = 'feedback correct';
+            feedbackMsg.innerHTML = `✅ 你自评：正确！参考答案：<span class="answer">“${correctAnswer}”</span>`;
+            actionsDiv.remove();
+            state.answered = true;
+            updateWrongCount();
+            nextBtn.disabled = false;
+            answerInput.disabled = true;
+            submitBtn.disabled = true;
+            saveState();
+        });
+
+        actionsDiv.querySelector('[data-self="wrong"]').addEventListener('click', () => {
+            if (!state.wrongIds.includes(q.id)) state.wrongIds.push(q.id);
+            updateWrongCount();
+            feedback.className = 'feedback';
+            feedbackMsg.innerHTML = `❌ 你自评：错误。参考答案：<span class="answer">“${correctAnswer}”</span>`;
+            actionsDiv.remove();
+            state.answered = true;
+            nextBtn.disabled = false;
+            answerInput.disabled = true;
+            submitBtn.disabled = true;
+            saveState();
+        });
+
+        actionsDiv.querySelector('#baiduBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            searchBaidu(questionContent, correctAnswer);
+        });
+    }
+
+    function handleChoiceClick(idx, q) {
+        if (state.answered || state.isEditing) return;
+        const btns = optionsContainer.querySelectorAll('.option-btn');
+        btns.forEach(b => b.classList.add('disabled-opt'));
+
+        const userChoice = q.options[idx];
+        const correctAnswer = q.options[q.answer];
+        const questionContent = q.stem;
+
+        feedback.className = 'feedback';
+        feedback.style.display = 'block';
+        feedbackMsg.innerHTML = `
+            <div><span class="user-answer">你选择了：${userChoice}</span></div>
+            <div><strong>📌 参考答案：</strong><span class="ref-answer">${correctAnswer}</span></div>
+            <div style="margin-top:8px;font-size:14px;color:#7f8c8d;">请根据参考答案自评，或点击“百度一下”搜索验证。</div>
+        `;
+
+        createSelfEvalButtons(q, userChoice, correctAnswer, questionContent);
+
+        state.answered = true;
+        nextBtn.disabled = false;
+        saveState();
+    }
+
+    function checkFillAnswer() {
+        if (state.answered || state.isEditing) return;
+        const questions = getCurrentQuestions();
+        if (questions.length === 0 || state.currentIndex >= questions.length) {
+            alert('当前没有题目，请选择其他模块或重置。');
+            return;
+        }
+        const userAnswer = answerInput.value.trim();
+        if (userAnswer === '') {
+            alert('请输入你的答案！');
+            return;
+        }
+        const q = questions[state.currentIndex];
+        const correctAnswer = q.a;
+        const questionContent = q.q;
+
+        feedback.className = 'feedback';
+        feedback.style.display = 'block';
+        feedbackMsg.innerHTML = `
+            <div><span class="user-answer">你的回答：${userAnswer}</span></div>
+            <div><strong>📌 参考答案：</strong><span class="ref-answer">${correctAnswer}</span></div>
+            <div style="margin-top:8px;font-size:14px;color:#7f8c8d;">请根据参考答案自评，或点击“百度一下”搜索验证。</div>
+        `;
+
+        createSelfEvalButtons(q, userAnswer, correctAnswer, questionContent);
+
+        state.answered = true;
+        submitBtn.disabled = true;
+        answerInput.disabled = true;
+        nextBtn.disabled = false;
+        saveState();
+    }
+
+    function nextQuestion() {
+        if (!state.answered) return;
+        state.currentIndex++;
+        state.answered = false;
+        submitBtn.disabled = false;
+        nextBtn.disabled = true;
+        answerInput.disabled = false;
+        answerInput.value = '';
+        feedback.className = 'feedback';
+        feedback.style.display = 'none';
+        const tip = feedback.querySelector('.baidu-tip');
+        if (tip) tip.remove();
+        exitEditMode();
+        const questions = getCurrentQuestions();
+        if (state.currentIndex < questions.length) {
+            showQuestion();
+            if (state.mode === 'fill') answerInput.focus();
+        } else {
+            showQuestion();
+            if (state.mode === 'fill') { answerInput.disabled = true; submitBtn.disabled = true; }
+            nextBtn.disabled = true;
+        }
+        saveState();
+    }
+
+    function resetGame() {
+        if (confirm('重置将清除当前进度，是否继续？')) {
+            localStorage.removeItem('hist_fill_state');
+            state.wrongIds = [];
+            state.isWrongReview = false;
+            state.module = moduleSelect.value;
+            state.mode = currentMode;
+            state.isEditing = false;
+            init(false);
+            resumeBanner.style.display = 'none';
+        }
+    }
+
+    function updateStats() { scoreText.textContent = `✅ ${state.score} 正确`; }
+    function updateWrongCount() { wrongCountSpan.textContent = state.wrongIds.length; }
+
+    function startWrongReview() {
+        if (state.wrongIds.length === 0) { alert('🎉 错题集为空，继续加油！'); return; }
+        const ids = shuffle([...state.wrongIds]);
+        state.questionIds = ids;
+        state.currentIndex = 0;
+        state.score = 0;
+        state.answered = false;
+        state.isWrongReview = true;
+        state.isEditing = false;
+        currentModuleTag.textContent = '📕 错题重练';
+        feedback.className = 'feedback';
+        feedback.style.display = 'none';
+        answerInput.disabled = false;
+        submitBtn.disabled = false;
+        nextBtn.disabled = true;
+        answerInput.value = '';
+        if (state.mode === 'fill') {
+            fillArea.classList.remove('hidden');
+            choiceArea.classList.add('hidden');
+            qLabel.textContent = '📖 错题重练 · 请填写正确答案：';
+            answerInput.placeholder = '输入答案...';
+        } else {
+            fillArea.classList.add('hidden');
+            choiceArea.classList.remove('hidden');
+            qLabel.textContent = '🧩 错题重练 · 选择正确答案：';
+            optionsContainer.innerHTML = '';
+        }
+        showQuestion();
+        updateStats();
+        saveState();
+        if (state.mode === 'fill') answerInput.focus();
+    }
+
+    // 模式切换
+    let currentMode = 'fill';
+    function switchMode(mode) {
+        if (mode === currentMode) return;
+        currentMode = mode;
+        state.mode = mode;
+        state.isEditing = false;
+        tabFill.classList.toggle('active', mode === 'fill');
+        tabChoice.classList.toggle('active', mode === 'choice');
+        state.module = moduleSelect.value;
+        init(true);
+        resumeBanner.style.display = 'none';
+    }
+
+    // 键盘快捷键
+    document.addEventListener('keydown', function(e) {
+        if (state.mode !== 'choice') return;
+        if (state.answered || state.isEditing) return;
+        const key = e.key.toUpperCase();
+        if (!['A', 'B', 'C', 'D'].includes(key)) return;
+        const btns = optionsContainer.querySelectorAll('.option-btn');
+        const idx = key.charCodeAt(0) - 65;
+        if (idx < btns.length) {
+            btns[idx].click();
+            e.preventDefault();
+        }
+    });
+
+    // 持久化
+    function saveState() {
+        const data = {
+            mode: state.mode, module: state.module, questionIds: state.questionIds,
+            currentIndex: state.currentIndex, score: state.score, wrongIds: state.wrongIds,
+            answered: state.answered, isWrongReview: state.isWrongReview,
+            currentMode: currentMode,
+        };
+        try { localStorage.setItem('hist_fill_state', JSON.stringify(data)); } catch (e) {}
+    }
+    function loadState() {
+        try { const raw = localStorage.getItem('hist_fill_state'); if (!raw) return null; return JSON.parse(raw); } catch (e) { return null; }
+    }
+    function tryResume() {
+        const data = loadState();
+        if (!data) return false;
+        if (!data.mode || !data.module || !data.questionIds || data.currentIndex === undefined) return false;
+        for (let id of data.questionIds) { if (!getQuestionById(id)) return false; }
+        state.mode = data.mode; state.module = data.module; state.questionIds = data.questionIds;
+        state.currentIndex = data.currentIndex; state.score = data.score || 0; state.wrongIds = data.wrongIds || [];
+        state.answered = data.answered || false; state.isWrongReview = data.isWrongReview || false;
+        currentMode = data.currentMode || data.mode;
+        moduleSelect.value = state.module;
+        currentModuleTag.textContent = state.isWrongReview ? '📕 错题重练' : state.module;
+        tabFill.classList.toggle('active', state.mode === 'fill');
+        tabChoice.classList.toggle('active', state.mode === 'choice');
+        if (state.mode === 'fill') {
+            fillArea.classList.remove('hidden'); choiceArea.classList.add('hidden');
+            qLabel.textContent = state.isWrongReview ? '📖 错题重练 · 请填写正确答案：' : '📖 请根据题意填写正确答案：';
+            answerInput.placeholder = '输入答案...';
+        } else {
+            fillArea.classList.add('hidden'); choiceArea.classList.remove('hidden');
+            qLabel.textContent = state.isWrongReview ? '🧩 错题重练 · 选择正确答案：' : '🧩 选择正确答案：';
+        }
+        showQuestion();
+        updateStats();
+        updateWrongCount();
+        if (state.answered) {
+            if (state.mode === 'fill') { answerInput.disabled = true; submitBtn.disabled = true; }
+            else { const btns = optionsContainer.querySelectorAll('.option-btn'); btns.forEach(b => b.classList.add('disabled-opt')); }
+            nextBtn.disabled = false;
+            feedback.className = 'feedback';
+            feedback.style.display = 'block';
+            feedbackMsg.innerHTML = '⏳ 该题已作答，点击“下一题”继续。';
+        } else {
+            if (state.mode === 'fill') { answerInput.disabled = false; submitBtn.disabled = false; }
+            nextBtn.disabled = true;
+        }
+        return true;
+    }
+
+    function saveAllQuestionsToStorage() {
+        try {
+            localStorage.setItem('hist_questions', JSON.stringify(allQuestions));
+        } catch (e) {}
+    }
+
+    function loadQuestionsFromStorage() {
+        try {
+            const stored = localStorage.getItem('hist_questions');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    allQuestions = parsed;
+                    allQuestions.forEach((q, idx) => q.id = idx);
+                }
+            }
+        } catch (e) {}
+    }
+
+    // ============================================================
+    // 5. 管理题库功能
+    // ============================================================
+    function openManageModal() {
+        renderManageTable();
+        manageModal.classList.add('active');
+    }
+
+    function closeManageModal() {
+        manageModal.classList.remove('active');
+    }
+
+    // 渲染管理表格
+    function renderManageTable() {
+        let html = '';
+        allQuestions.forEach((q, index) => {
+            const optionsStr = q.options ? q.options.join(';') : '';
+            html += `
+                <tr data-id="${q.id}">
+                    <td>${index + 1}</td>
+                    <td>
+                        <select class="type-select">
+                            <option value="fill" ${q.type === 'fill' ? 'selected' : ''}>填空</option>
+                            <option value="choice" ${q.type === 'choice' ? 'selected' : ''}>选择</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="q-input" value="${escapeHtml(q.q || q.stem || '')}" placeholder="题目内容" /></td>
+                    <td><input type="text" class="a-input" value="${escapeHtml(q.a || '')}" placeholder="答案" /></td>
+                    <td>
+                        <select class="module-select-manage">
+                            <option value="一、原因与背景" ${q.module === '一、原因与背景' ? 'selected' : ''}>一、原因与背景</option>
+                            <option value="二、影响与意义" ${q.module === '二、影响与意义' ? 'selected' : ''}>二、影响与意义</option>
+                            <option value="三、性质与特征" ${q.module === '三、性质与特征' ? 'selected' : ''}>三、性质与特征</option>
+                            <option value="四、变化与趋势" ${q.module === '四、变化与趋势' ? 'selected' : ''}>四、变化与趋势</option>
+                            <option value="五、启示与感悟" ${q.module === '五、启示与感悟' ? 'selected' : ''}>五、启示与感悟</option>
+                            <option value="六、观点小论文" ${q.module === '六、观点小论文' ? 'selected' : ''}>六、观点小论文</option>
+                            <option value="七、专题固化搭配" ${q.module === '七、专题固化搭配' ? 'selected' : ''}>七、专题固化搭配</option>
+                            <option value="八、答题三维公式" ${q.module === '八、答题三维公式' ? 'selected' : ''}>八、答题三维公式</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="options-input" value="${escapeHtml(optionsStr)}" placeholder="选项1;选项2;..." /></td>
+                    <td>
+                        <button class="btn btn-danger btn-sm delete-row-btn" data-id="${q.id}">删除</button>
+                    </td>
+                </tr>
+            `;
+        });
+        manageTableBody.innerHTML = html;
+
+        // 绑定删除事件
+        document.querySelectorAll('.delete-row-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = parseInt(this.dataset.id);
+                if (confirm('确定要删除此题吗？')) {
+                    allQuestions = allQuestions.filter(q => q.id !== id);
+                    allQuestions.forEach((q, idx) => q.id = idx);
+                    renderManageTable();
+                }
+            });
+        });
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function saveManageChanges() {
+        const rows = manageTableBody.querySelectorAll('tr');
+        const newQuestions = [];
+        let valid = true;
+        rows.forEach((row, idx) => {
+            const type = row.querySelector('.type-select').value;
+            const qContent = row.querySelector('.q-input').value.trim();
+            const answer = row.querySelector('.a-input').value.trim();
+            const module = row.querySelector('.module-select-manage').value;
+            const optionsStr = row.querySelector('.options-input').value.trim();
+            if (!qContent || !answer) {
+                alert(`第 ${idx+1} 行题目或答案为空，请补全。`);
+                valid = false;
+                return;
+            }
+            let options = null;
+            let answerIdx = 0;
+            if (type === 'choice') {
+                if (!optionsStr) {
+                    alert(`选择题 ${qContent} 缺少选项，请填写选项（用分号分隔）。`);
+                    valid = false;
+                    return;
+                }
+                options = optionsStr.split(';').map(s => s.trim()).filter(s => s);
+                if (options.length < 2) {
+                    alert(`选择题 ${qContent} 的选项至少需要2个。`);
+                    valid = false;
+                    return;
+                }
+                const ansIndex = options.indexOf(answer);
+                if (ansIndex === -1) {
+                    alert(`选择题 ${qContent} 的答案“${answer}”不在选项列表中，请检查。`);
+                    valid = false;
+                    return;
+                }
+                answerIdx = ansIndex;
+            }
+            const newQ = {
+                type: type,
+                module: module,
+                id: idx,
+            };
+            if (type === 'fill') {
+                newQ.q = qContent;
+                newQ.a = answer;
+            } else {
+                newQ.stem = qContent;
+                newQ.options = options;
+                newQ.answer = answerIdx;
+                newQ.a = answer;
+            }
+            newQuestions.push(newQ);
+        });
+        if (!valid) return;
+
+        if (newQuestions.length > 0) {
+            allQuestions = newQuestions;
+            saveAllQuestionsToStorage();
+            init(true);
+            closeManageModal();
+            alert('✅ 题库已更新！');
+        }
+    }
+
+    function addRow() {
+        const newId = allQuestions.length;
+        const newQ = {
+            type: 'fill',
+            q: '新题目',
+            a: '答案',
+            module: '一、原因与背景',
+            id: newId,
+        };
+        allQuestions.push(newQ);
+        renderManageTable();
+        const rows = manageTableBody.querySelectorAll('tr');
+        if (rows.length > 0) {
+            rows[rows.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // 导出 CSV
+    function exportCsv() {
+        const header = ['id', 'type', 'content', 'answer', 'module', 'options'];
+        const rows = allQuestions.map(q => {
+            const content = q.type === 'fill' ? q.q : q.stem;
+            const options = q.options ? q.options.join(';') : '';
+            return [q.id, q.type, content, q.a, q.module, options];
+        });
+        let csv = header.join(',') + '\n';
+        rows.forEach(row => {
+            const escaped = row.map(cell => {
+                if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
+                    return `"${cell.replace(/"/g, '""')}"`;
+                }
+                return cell;
+            });
+            csv += escaped.join(',') + '\n';
+        });
+
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = '题库_历史真题.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+
+    function importCsv() {
+        csvFileInput.click();
+    }
+
+    function handleCsvFile(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length < 2) {
+                alert('CSV文件格式错误：至少需要标题行和一行数据。');
+                return;
+            }
+            const headers = lines[0].split(',').map(h => h.trim());
+            const expectedHeaders = ['id', 'type', 'content', 'answer', 'module', 'options'];
+            const dataRows = lines.slice(1).map(line => {
+                const regex = /(?:,|^)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g;
+                const matches = [];
+                let match;
+                while ((match = regex.exec(line)) !== null) {
+                    matches.push((match[1] || match[2] || '').trim());
+                }
+                return matches;
+            });
+
+            let idIdx = headers.indexOf('id');
+            let typeIdx = headers.indexOf('type');
+            let contentIdx = headers.indexOf('content');
+            let answerIdx = headers.indexOf('answer');
+            let moduleIdx = headers.indexOf('module');
+            let optionsIdx = headers.indexOf('options');
+            if (idIdx === -1 || typeIdx === -1 || contentIdx === -1 || answerIdx === -1 || moduleIdx === -1) {
+                alert('CSV列名不匹配，请确保包含：id, type, content, answer, module, options');
+                return;
+            }
+
+            const imported = [];
+            dataRows.forEach((row, idx) => {
+                if (row.length < 6) return;
+                const id = parseInt(row[idIdx]) || idx;
+                const type = row[typeIdx] || 'fill';
+                const content = row[contentIdx] || '';
+                const answer = row[answerIdx] || '';
+                const module = row[moduleIdx] || '一、原因与背景';
+                const optionsStr = row[optionsIdx] || '';
+                let options = null;
+                let answerIdx2 = 0;
+                if (type === 'choice') {
+                    options = optionsStr.split(';').map(s => s.trim()).filter(s => s);
+                    const ansPos = options.indexOf(answer);
+                    answerIdx2 = ansPos !== -1 ? ansPos : 0;
+                }
+                const q = {
+                    type: type,
+                    module: module,
+                    q: type === 'fill' ? content : undefined,
+                    stem: type === 'choice' ? content : undefined,
+                    a: answer,
+                    options: options,
+                    answer: answerIdx2,
+                };
+                imported.push(q);
+            });
+
+            if (imported.length === 0) {
+                alert('没有解析到有效数据。');
+                return;
+            }
+
+            const choice = confirm(`解析到 ${imported.length} 条题目。\n点击“确定”覆盖当前题库，点击“取消”追加到题库末尾。`);
+            if (choice) {
+                allQuestions = imported;
+            } else {
+                const maxId = allQuestions.reduce((max, q) => Math.max(max, q.id), 0);
+                imported.forEach((q, idx) => {
+                    q.id = maxId + idx + 1;
+                });
+                allQuestions = allQuestions.concat(imported);
+            }
+            allQuestions.forEach((q, idx) => q.id = idx);
+            saveAllQuestionsToStorage();
+            renderManageTable();
+            alert(`✅ 成功导入 ${imported.length} 题！`);
+            init(true);
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    csvFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            handleCsvFile(file);
+        }
+        this.value = '';
+    });
+
+    // 管理界面事件绑定
+    manageBtn.addEventListener('click', openManageModal);
+    closeModalBtns.forEach(btn => btn.addEventListener('click', closeManageModal));
+    addRowBtn.addEventListener('click', addRow);
+    saveManageBtn.addEventListener('click', saveManageChanges);
+    exportCsvBtn.addEventListener('click', exportCsv);
+    importCsvBtn.addEventListener('click', importCsv);
+
+    manageModal.addEventListener('click', function(e) {
+        if (e.target === this) closeManageModal();
+    });
+
+    // ============================================================
+    // 6. 启动
+    // ============================================================
+    loadQuestionsFromStorage();
+
+    // 事件绑定
+    tabFill.addEventListener('click', () => switchMode('fill'));
+    tabChoice.addEventListener('click', () => switchMode('choice'));
+    moduleSelect.addEventListener('change', function() {
+        state.module = this.value;
+        state.isWrongReview = false;
+        state.isEditing = false;
+        init(true);
+        resumeBanner.style.display = 'none';
+    });
+    submitBtn.addEventListener('click', checkFillAnswer);
+    nextBtn.addEventListener('click', nextQuestion);
+    resetBtn.addEventListener('click', resetGame);
+    wrongReviewBtn.addEventListener('click', startWrongReview);
+    resumeYes.addEventListener('click', function() {
+        resumeBanner.style.display = 'none';
+        showQuestion(); updateStats(); updateWrongCount();
+        if (state.mode === 'fill') answerInput.focus();
+        saveState();
+    });
+    resumeNo.addEventListener('click', function() {
+        resumeBanner.style.display = 'none';
+        localStorage.removeItem('hist_fill_state');
+        state.wrongIds = [];
+        state.isWrongReview = false;
+        state.module = moduleSelect.value;
+        state.mode = currentMode;
+        state.isEditing = false;
+        init(false);
+    });
+    answerInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            if (state.mode === 'fill') {
+                if (!state.answered && !state.isEditing) checkFillAnswer();
+                else nextQuestion();
+            }
+        }
+    });
+
+    window.onload = function() {
+        const hasSaved = tryResume();
+        if (hasSaved) {
+            resumeBanner.style.display = 'flex';
+            const questions = getCurrentQuestions();
+            if (questions.length === 0) {
+                resumeBanner.style.display = 'none';
+                init(false);
+            } else {
+                currentModuleTag.textContent = state.isWrongReview ? '📕 错题重练' : state.module;
+                updateWrongCount();
+            }
+        } else {
+            state.mode = 'fill';
+            currentMode = 'fill';
+            state.module = moduleSelect.value;
+            state.isEditing = false;
+            tabFill.classList.add('active');
+            tabChoice.classList.remove('active');
+            init(false);
+        }
+    };
+</script>
+</body>
+</html>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js');
+    });
+  }
+</script>
+
+</body>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js');
+    });
+  }
+</script>
+</html>
