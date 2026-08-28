@@ -1,20 +1,23 @@
-{
-  "name": "历史真题练习",
-  "short_name": "历史练习",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3498db",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
-}
+const CACHE_NAME = 'history-pwa-v1';
+const urlsToCache = [
+  '.',
+  'index.html',
+  'style.css',  // 如果你有外部 CSS
+  'script.js'   // 如果你有外部 JS
+];
+
+// 安装时缓存静态资源
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+  );
+});
+
+// 拦截请求，优先返回缓存
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+  );
+});
