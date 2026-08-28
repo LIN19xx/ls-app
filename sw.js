@@ -1,20 +1,21 @@
-const CACHE_NAME = 'history-pwa-v1';
+const CACHE_NAME = 'history-pwa-v2';  // 版本号提升
 const urlsToCache = [
   '.',
   'index.html',
-  'style.css',  // 如果你有外部 CSS
-  'script.js'   // 如果你有外部 JS
+  'manifest.json',
+  'helpers.js'
 ];
 
-// 安装时缓存静态资源
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(cache => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
   );
 });
 
-// 拦截请求，优先返回缓存
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
