@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>古诗文默写检查 · 平板版</title>
+    <title>古诗文默写检查 · 平板版（数据持久化）</title>
     <style>
         :root {
             --bg: #f5f0e8;
@@ -105,7 +105,6 @@
             box-shadow: 0 1px 6px rgba(139, 94, 60, 0.3);
         }
 
-        /* ==================== 平板布局 ==================== */
         .main-layout {
             display: flex;
             gap: 24px;
@@ -136,8 +135,6 @@
             text-align: center;
             letter-spacing: 1px;
         }
-
-        /* 搜索框 - 触控优化 */
         .search-box {
             position: relative;
             flex-shrink: 0;
@@ -195,8 +192,6 @@
             align-items: center;
             justify-content: center;
         }
-
-        /* 搜索模式 */
         .search-results {
             display: none;
             flex-direction: column;
@@ -259,8 +254,6 @@
             background: rgba(255, 255, 255, 0.4);
             color: #fff;
         }
-
-        /* 手风琴层级 - 触控优化 */
         .grade-group {
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
@@ -441,8 +434,6 @@
             font-weight: 600;
             box-shadow: 0 2px 8px rgba(139, 94, 60, 0.3);
         }
-
-        /* ==================== 内容区 ==================== */
         .content-area {
             flex: 1;
             min-width: 0;
@@ -534,8 +525,6 @@
             border-width: 1.5px;
             min-height: 44px;
         }
-
-        /* 默写输入区 - 触控优化 */
         .input-area textarea {
             width: 100%;
             min-height: 380px;
@@ -565,8 +554,6 @@
             letter-spacing: 0.5px;
             font-size: var(--font-small);
         }
-
-        /* 结果区 */
         .result-area {
             display: none;
             margin-top: 20px;
@@ -614,7 +601,6 @@
             padding: 1px 3px;
             text-decoration: line-through;
         }
-
         .score-bar {
             display: flex;
             align-items: center;
@@ -649,7 +635,6 @@
             border-radius: 7px;
             transition: width 0.5s ease;
         }
-
         .original-text {
             display: none;
             margin-top: 16px;
@@ -680,7 +665,6 @@
             border-bottom: 1px solid var(--border);
             padding-bottom: 8px;
         }
-
         footer {
             text-align: center;
             color: var(--text-light);
@@ -688,8 +672,6 @@
             letter-spacing: 1px;
             padding: 16px 0 24px;
         }
-
-        /* ==================== 管理模态框 - 平板优化 ==================== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -858,7 +840,6 @@
             font-size: var(--font-base);
         }
 
-        /* ==================== 响应式断点 ==================== */
         @media (min-width: 1024px) and (max-width: 1366px) {
             .sidebar {
                 flex: 0 0 300px;
@@ -870,9 +851,7 @@
                 min-height: 340px;
             }
         }
-
         @media (max-width: 1024px) {
-            /* 平板竖屏或小横屏 */
             .main-layout {
                 flex-direction: column;
             }
@@ -905,7 +884,6 @@
                 max-height: 85vh;
             }
         }
-
         @media (max-width: 768px) {
             body {
                 padding: 12px;
@@ -944,7 +922,7 @@
     <div class="app-container">
         <header>
             <h1>📜 古诗文默写检查</h1>
-            <p>统编版七年级上册 · 平板触控版</p>
+            <p>统编版七年级上册 · 数据自动保存</p>
             <button class="btn-manage" id="openManageBtn">⚙️ 自定义题库</button>
         </header>
 
@@ -996,7 +974,7 @@
             </main>
         </div>
         <footer>
-            ⚠️ 严格要求：一字一标点符号都不能错 &nbsp;|&nbsp; 支持年级/册次/子分类三层级管理
+            ⚠️ 严格要求：一字一标点符号都不能错 &nbsp;|&nbsp; 数据自动保存到浏览器
         </footer>
     </div>
 
@@ -1021,6 +999,7 @@
 
     <script>
         (function() {
+            // ===================== 初始题库 =====================
             const initialPoems = [{
                 id: 1, title: "观沧海", author: "曹操",
                 grade: "七年级", volume: "上册", subcategory: "课内古诗词",
@@ -1103,6 +1082,7 @@
             const PRESET_VOLUMES = ['上册', '下册'];
             const PRESET_SUBCATEGORIES = ['课内古诗词', '课内文言文', '课外古诗词诵读', '其他'];
 
+            // ===================== 题库状态 =====================
             let poems = JSON.parse(JSON.stringify(initialPoems));
             let nextId = poems.length + 1;
             let currentId = poems[0]?.id || null;
@@ -1111,6 +1091,31 @@
             let expandedVolumes = {};
             let searchMode = false;
 
+            // ===================== 本地存储 =====================
+            function loadPoemsFromStorage() {
+                try {
+                    const stored = localStorage.getItem('poemsData');
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            return parsed;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('读取本地题库失败，使用默认题库');
+                }
+                return null;
+            }
+
+            function savePoemsToStorage() {
+                try {
+                    localStorage.setItem('poemsData', JSON.stringify(poems));
+                } catch (e) {
+                    console.warn('保存本地题库失败');
+                }
+            }
+
+            // ===================== DOM =====================
             const gradeAccordion = document.getElementById('gradeAccordion');
             const searchInput = document.getElementById('searchInput');
             const searchClearBtn = document.getElementById('searchClearBtn');
@@ -1140,6 +1145,7 @@
             const importFileInput = document.getElementById('importFileInput');
             const restoreDefaultBtn = document.getElementById('restoreDefaultBtn');
 
+            // ===================== 侧边栏渲染 =====================
             function renderSidebar() {
                 const validGrades = new Set(poems.map(p => p.grade));
                 Object.keys(expandedGrades).forEach(g => { if (!validGrades.has(g)) delete expandedGrades[g]; });
@@ -1412,6 +1418,7 @@
                 return div.innerHTML;
             }
 
+            // ===================== 管理模态框 =====================
             function openManage() {
                 manageModal.classList.add('active');
                 renderManageList();
@@ -1419,6 +1426,7 @@
 
             function closeManage() {
                 collectManageData();
+                savePoemsToStorage();
                 manageModal.classList.remove('active');
                 renderSidebar();
                 if (currentId !== null && poems.find(p => p.id === currentId)) {
@@ -1441,7 +1449,8 @@
 
             function saveManage() {
                 collectManageData();
-                alert('保存成功！');
+                savePoemsToStorage();
+                alert('保存成功！数据已保存到浏览器。');
                 renderSidebar();
             }
 
@@ -1517,6 +1526,7 @@
                     if (poems.length > 0) currentId = poems[0].id;
                     else currentId = null;
                 }
+                savePoemsToStorage();
                 renderManageList();
                 renderSidebar();
             }
@@ -1566,6 +1576,7 @@
 
             function exportData() {
                 collectManageData();
+                savePoemsToStorage();
                 const dataStr = JSON.stringify(poems, null, 2);
                 const blob = new Blob([dataStr], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -1599,6 +1610,7 @@
                         else currentId = null;
                         expandedGrades = {};
                         expandedVolumes = {};
+                        savePoemsToStorage();
                         renderManageList();
                         renderSidebar();
                         alert('题库导入成功！');
@@ -1616,11 +1628,13 @@
                 currentId = poems.length > 0 ? poems[0].id : null;
                 expandedGrades = {};
                 expandedVolumes = {};
+                localStorage.removeItem('poemsData');
                 renderManageList();
                 renderSidebar();
                 alert('已恢复默认题库。');
             }
 
+            // ===================== 事件绑定 =====================
             openManageBtn.addEventListener('click', openManage);
             closeManageBtn.addEventListener('click', closeManage);
             saveManageBtn.addEventListener('click', saveManage);
@@ -1670,10 +1684,19 @@
                 inputText.focus();
             });
 
+            // ===================== 初始化 =====================
             function init() {
+                // 尝试从本地存储加载题库
+                const storedPoems = loadPoemsFromStorage();
+                if (storedPoems) {
+                    poems = storedPoems;
+                    nextId = poems.length + 1;
+                    currentId = poems[0]?.id || null;
+                }
                 renderSidebar();
-                selectPoem(poems[0]?.id);
+                selectPoem(currentId);
             }
+
             init();
         })();
     </script>
