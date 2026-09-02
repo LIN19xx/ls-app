@@ -3,9 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>古诗文默写检查 · 平板版（数据持久化）</title>
+    <title>古诗文默写 · 智能学习系统</title>
+    <!-- DOMPurify for XSS protection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" defer></script>
     <style>
+        /* ===================== CSS Variables & Themes ===================== */
         :root {
+            --font-base: 17px;
+            --font-small: 15px;
+            --font-large: 20px;
+            --font-xl: 28px;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --touch-target: 48px;
+            --transition: 0.25s ease;
+            
             --bg: #f5f0e8;
             --card: #ffffff;
             --primary: #8b5e3c;
@@ -19,21 +32,35 @@
             --wrong-bg: #ffebee;
             --missing-bg: #e53935;
             --extra-bg: #ffcdd2;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            --radius: 16px;
-            --radius-sm: 10px;
-            --transition: 0.25s ease;
-            --touch-target: 48px;
-            --font-base: 17px;
-            --font-small: 15px;
-            --font-large: 20px;
-            --font-xl: 28px;
+            --modal-overlay: rgba(0,0,0,0.55);
+            --input-bg: #fdfcf9;
+            --hover-bg: #f5f0ea;
+            --shadow-strong: 0 16px 50px rgba(0, 0, 0, 0.25);
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+
+        [data-theme="dark"] {
+            --bg: #1a1816;
+            --card: #272420;
+            --primary: #d4a373;
+            --primary-light: #e0b68a;
+            --text: #e8e0d8;
+            --text-light: #b0a89a;
+            --border: #4a443c;
+            --correct: #81c784;
+            --correct-bg: #1e3a1f;
+            --wrong: #ef9a9a;
+            --wrong-bg: #4a1a1a;
+            --missing-bg: #c62828;
+            --extra-bg: #7a1a1a;
+            --modal-overlay: rgba(0,0,0,0.75);
+            --input-bg: #2f2b26;
+            --hover-bg: #3a352e;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --shadow-strong: 0 16px 50px rgba(0, 0, 0, 0.6);
         }
+
+        /* ===================== Reset & Base ===================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: "Georgia", "Noto Serif SC", "STSong", "SimSun", serif;
             background: var(--bg);
@@ -44,50 +71,65 @@
             justify-content: center;
             align-items: flex-start;
             font-size: var(--font-base);
+            transition: background var(--transition), color var(--transition);
             -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
         }
-        .app-container {
-            width: 100%;
-            max-width: 1360px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
+        .app-container { width: 100%; max-width: 1440px; display: flex; flex-direction: column; gap: 24px; }
+
+        /* ===================== Header ===================== */
         header {
-            text-align: center;
-            padding: 24px 0 12px;
-            position: relative;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            gap: 8px;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 16px 0 8px;
+            border-bottom: 2px solid var(--border);
         }
         header h1 {
             font-size: var(--font-xl);
             color: var(--primary);
             letter-spacing: 2px;
             font-weight: 700;
-            margin-bottom: 4px;
         }
-        header p {
-            color: var(--text-light);
-            font-size: var(--font-small);
-            letter-spacing: 1px;
+        header .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
         }
+        .btn-icon {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: var(--font-base);
+            cursor: pointer;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text);
+            min-height: var(--touch-target);
+            font-family: inherit;
+            box-shadow: var(--shadow);
+        }
+        .btn-icon:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .btn-icon:active { transform: scale(0.96); }
         .btn-manage {
-            position: absolute;
-            right: 0;
-            top: 20px;
-            padding: 14px 28px;
             background: var(--primary);
             color: #fff;
             border: none;
+            padding: 12px 28px;
             border-radius: 30px;
             cursor: pointer;
             font-size: var(--font-base);
             font-family: inherit;
-            letter-spacing: 1px;
             transition: all var(--transition);
             box-shadow: 0 2px 12px rgba(139, 94, 60, 0.35);
             min-height: var(--touch-target);
@@ -98,20 +140,12 @@
         .btn-manage:hover {
             background: var(--primary-light);
             transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(139, 94, 60, 0.45);
-        }
-        .btn-manage:active {
-            transform: scale(0.97);
-            box-shadow: 0 1px 6px rgba(139, 94, 60, 0.3);
         }
 
-        .main-layout {
-            display: flex;
-            gap: 24px;
-            align-items: flex-start;
-        }
+        /* ===================== Main Layout ===================== */
+        .main-layout { display: flex; gap: 24px; align-items: flex-start; }
         .sidebar {
-            flex: 0 0 320px;
+            flex: 0 0 340px;
             background: var(--card);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
@@ -124,21 +158,16 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
-            -webkit-overflow-scrolling: touch;
+            transition: background var(--transition), border var(--transition);
         }
         .sidebar h2 {
             font-size: 1.2rem;
             color: var(--primary);
-            margin-bottom: 4px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--primary);
             text-align: center;
-            letter-spacing: 1px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 12px;
         }
-        .search-box {
-            position: relative;
-            flex-shrink: 0;
-        }
+        .search-box { position: relative; flex-shrink: 0; }
         .search-box input {
             width: 100%;
             padding: 14px 44px 14px 18px;
@@ -146,26 +175,17 @@
             border-radius: 30px;
             font-size: var(--font-base);
             font-family: inherit;
-            background: #fdfcf9;
+            background: var(--input-bg);
             color: var(--text);
             transition: all var(--transition);
-            letter-spacing: 0.5px;
             outline: none;
             min-height: var(--touch-target);
-            -webkit-appearance: none;
-            appearance: none;
         }
         .search-box input:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 4px rgba(139, 94, 60, 0.15);
-            background: #fff;
         }
-        .search-box input::placeholder {
-            color: #b8aca0;
-            font-style: italic;
-            font-size: var(--font-small);
-        }
-        .search-box .search-clear {
+        .search-clear {
             position: absolute;
             right: 8px;
             top: 50%;
@@ -177,36 +197,18 @@
             color: var(--text-light);
             padding: 8px 12px;
             border-radius: 50%;
-            transition: all var(--transition);
             display: none;
             min-width: 44px;
             min-height: 44px;
-            line-height: 1;
-        }
-        .search-box .search-clear:hover {
-            color: var(--wrong);
-            background: var(--wrong-bg);
-        }
-        .search-box .search-clear.visible {
-            display: flex;
             align-items: center;
             justify-content: center;
         }
-        .search-results {
-            display: none;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .search-results.visible {
-            display: flex;
-        }
-        .search-results .no-result {
-            text-align: center;
-            color: var(--text-light);
-            font-size: var(--font-small);
-            padding: 24px 12px;
-            font-style: italic;
-        }
+        .search-clear.visible { display: flex; }
+        .search-clear:hover { background: var(--wrong-bg); color: var(--wrong); }
+
+        .search-results { display: none; flex-direction: column; gap: 6px; }
+        .search-results.visible { display: flex; }
+        .search-results .no-result { text-align: center; color: var(--text-light); padding: 24px 12px; font-style: italic; }
         .search-results .poem-btn {
             width: 100%;
             padding: 14px 16px;
@@ -219,58 +221,33 @@
             border-radius: var(--radius-sm);
             text-align: left;
             transition: all var(--transition);
-            letter-spacing: 0.5px;
             border: 1px solid transparent;
             display: flex;
             flex-direction: column;
             gap: 4px;
             min-height: var(--touch-target);
         }
-        .search-results .poem-btn:hover {
-            background: #f5f0ea;
-            border-color: var(--border);
-        }
-        .search-results .poem-btn.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-        .search-results .poem-btn .result-title {
-            font-size: var(--font-base);
-            font-weight: 600;
-        }
-        .search-results .poem-btn .result-meta {
-            font-size: var(--font-small);
-            opacity: 0.7;
-            letter-spacing: 0.3px;
-        }
-        .search-results .poem-btn mark {
-            background: #fff3cd;
-            color: #8b5e00;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-        .search-results .poem-btn.active mark {
-            background: rgba(255, 255, 255, 0.4);
-            color: #fff;
-        }
+        .search-results .poem-btn:hover { background: var(--hover-bg); border-color: var(--border); }
+        .search-results .poem-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .search-results .poem-btn mark { background: #fff3cd; color: #8b5e00; padding: 2px 4px; border-radius: 4px; }
+        .search-results .poem-btn.active mark { background: rgba(255,255,255,0.4); color: #fff; }
+
+        /* Accordion */
         .grade-group {
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             overflow: hidden;
-            transition: all var(--transition);
             margin-bottom: 10px;
+            transition: border var(--transition);
         }
-        .grade-group.collapsed > .grade-body {
-            display: none;
-        }
+        .grade-group.collapsed > .grade-body { display: none; }
         .grade-header {
             padding: 14px 16px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 10px;
-            background: #faf6f0;
+            background: var(--input-bg);
             transition: all var(--transition);
             user-select: none;
             border: none;
@@ -280,52 +257,29 @@
             font-weight: 700;
             min-height: var(--touch-target);
             font-size: var(--font-base);
-        }
-        .grade-header:hover {
-            background: #f0ebe3;
-        }
-        .grade-header:active {
-            background: #e8ded2;
-        }
-        .grade-header .arrow {
-            font-size: 0.85rem;
-            transition: transform var(--transition);
-            min-width: 16px;
-            color: var(--text-light);
-            display: inline-block;
-        }
-        .grade-header .arrow.expanded {
-            transform: rotate(90deg);
-        }
-        .grade-header .group-name {
-            font-size: var(--font-base);
-            font-weight: 700;
             color: var(--text);
-            letter-spacing: 0.5px;
-            flex: 1;
         }
+        .grade-header:hover { background: var(--hover-bg); }
+        .grade-header .arrow { font-size: 0.85rem; transition: transform var(--transition); min-width: 16px; color: var(--text-light); display: inline-block; }
+        .grade-header .arrow.expanded { transform: rotate(90deg); }
         .grade-header .group-count {
             font-size: var(--font-small);
             color: var(--text-light);
-            background: #fff;
+            background: var(--card);
             padding: 4px 12px;
             border-radius: 16px;
             border: 1px solid var(--border);
             min-width: 32px;
             text-align: center;
-            font-weight: 400;
         }
-        .grade-body {
-            padding: 6px;
-            background: #fff;
-        }
+        .grade-body { padding: 6px; background: var(--card); }
         .volume-group {
-            border: none;
-            border-left: 3px solid #e8ded2;
+            border-left: 3px solid var(--border);
             margin-left: 16px;
             padding-left: 10px;
             margin-bottom: 6px;
         }
+        .volume-group.collapsed > .volume-body { display: none; }
         .volume-header {
             padding: 10px 12px;
             cursor: pointer;
@@ -333,55 +287,26 @@
             align-items: center;
             gap: 8px;
             background: transparent;
-            transition: all var(--transition);
-            user-select: none;
             border: none;
             width: 100%;
             font-family: inherit;
             text-align: left;
             min-height: 44px;
-        }
-        .volume-header:hover {
-            background: #fdfcf9;
-            border-radius: 8px;
-        }
-        .volume-header:active {
-            background: #f5f0ea;
-        }
-        .volume-header .arrow {
-            font-size: 0.75rem;
-            transition: transform var(--transition);
-            min-width: 12px;
-            color: var(--text-light);
-            display: inline-block;
-        }
-        .volume-header .arrow.expanded {
-            transform: rotate(90deg);
-        }
-        .volume-header .group-name {
-            font-size: var(--font-small);
-            font-weight: 600;
             color: var(--text);
-            flex: 1;
-            letter-spacing: 0.3px;
+            transition: all var(--transition);
         }
+        .volume-header:hover { background: var(--hover-bg); border-radius: 8px; }
+        .volume-header .arrow { font-size: 0.75rem; transition: transform var(--transition); min-width: 12px; color: var(--text-light); display: inline-block; }
+        .volume-header .arrow.expanded { transform: rotate(90deg); }
         .volume-header .group-count {
             font-size: 0.78rem;
             color: var(--text-light);
-            background: #fff;
+            background: var(--card);
             padding: 2px 10px;
             border-radius: 12px;
             border: 1px solid var(--border);
-            min-width: 24px;
-            text-align: center;
-            font-weight: 400;
         }
-        .volume-body {
-            padding: 4px 0 4px 10px;
-        }
-        .volume-group.collapsed > .volume-body {
-            display: none;
-        }
+        .volume-body { padding: 4px 0 4px 10px; }
         .subcategory-title {
             font-size: 0.8rem;
             color: var(--text-light);
@@ -389,18 +314,10 @@
             padding: 10px 8px 4px 18px;
             text-transform: uppercase;
             font-weight: 600;
-            border-bottom: 1px dashed #e8ded2;
+            border-bottom: 1px dashed var(--border);
             margin-bottom: 4px;
         }
-        .poem-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .poem-list li {
-            margin: 0;
-        }
+        .poem-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
         .poem-btn {
             width: 100%;
             padding: 10px 12px 10px 22px;
@@ -413,40 +330,24 @@
             border-radius: 8px;
             text-align: left;
             transition: all var(--transition);
-            letter-spacing: 0.4px;
             border: 1px solid transparent;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             min-height: 44px;
         }
-        .poem-btn:hover {
-            background: #f5f0ea;
-            border-color: var(--border);
-        }
-        .poem-btn:active {
-            background: #e8ded2;
-        }
-        .poem-btn.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(139, 94, 60, 0.3);
-        }
-        .content-area {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+        .poem-btn:hover { background: var(--hover-bg); border-color: var(--border); }
+        .poem-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; box-shadow: 0 2px 8px rgba(139,94,60,0.3); }
+
+        /* ===================== Content Area ===================== */
+        .content-area { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
         .card {
             background: var(--card);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             padding: 28px 32px;
             border: 1px solid var(--border);
+            transition: background var(--transition), border var(--transition);
         }
         .title-bar {
             display: flex;
@@ -456,24 +357,11 @@
             gap: 16px;
             margin-bottom: 20px;
             padding-bottom: 16px;
-            border-bottom: 2px solid #e8ded2;
+            border-bottom: 2px solid var(--border);
         }
-        .title-bar h2 {
-            font-size: var(--font-large);
-            color: var(--primary);
-            letter-spacing: 1px;
-            line-height: 1.3;
-        }
-        .title-bar .meta {
-            color: var(--text-light);
-            font-size: var(--font-small);
-            margin-top: 4px;
-        }
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+        .title-bar h2 { font-size: var(--font-large); color: var(--primary); letter-spacing: 1px; }
+        .title-bar .meta { color: var(--text-light); font-size: var(--font-small); }
+        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
         .btn {
             padding: 12px 24px;
             border: 2px solid var(--primary);
@@ -491,69 +379,33 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            -webkit-tap-highlight-color: transparent;
         }
-        .btn:hover {
-            background: var(--primary);
-            color: #fff;
-        }
-        .btn:active {
-            transform: scale(0.96);
-            box-shadow: 0 1px 4px rgba(139, 94, 60, 0.3);
-        }
-        .btn-primary {
-            background: var(--primary);
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background: var(--primary-light);
-            border-color: var(--primary-light);
-        }
-        .btn-outline {
-            background: transparent;
-            border-color: var(--border);
-            color: var(--text-light);
-        }
-        .btn-outline:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            background: #faf6f0;
-        }
-        .btn-sm {
-            padding: 10px 20px;
-            font-size: var(--font-small);
-            border-width: 1.5px;
-            min-height: 44px;
-        }
+        .btn:hover { background: var(--primary); color: #fff; }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .btn-primary:hover { background: var(--primary-light); border-color: var(--primary-light); }
+        .btn-outline { background: transparent; border-color: var(--border); color: var(--text-light); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: var(--hover-bg); }
+        .btn-sm { padding: 10px 20px; font-size: var(--font-small); min-height: 44px; }
+
         .input-area textarea {
             width: 100%;
-            min-height: 380px;
+            min-height: 280px;
             padding: 20px 22px;
             border: 2px solid var(--border);
             border-radius: var(--radius-sm);
             font-size: var(--font-base);
-            font-family: "Georgia", "Noto Serif SC", "STSong", "SimSun", serif;
+            font-family: inherit;
             line-height: 2.0;
             letter-spacing: 1px;
             resize: vertical;
             transition: border-color var(--transition);
-            background: #fdfcf9;
+            background: var(--input-bg);
             color: var(--text);
-            -webkit-appearance: none;
-            appearance: none;
         }
-        .input-area textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(139, 94, 60, 0.12);
-            background: #fff;
-        }
-        .input-area textarea::placeholder {
-            color: #b8aca0;
-            font-style: italic;
-            letter-spacing: 0.5px;
-            font-size: var(--font-small);
-        }
+        .input-area textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(139,94,60,0.12); }
+
+        /* Results */
         .result-area {
             display: none;
             margin-top: 20px;
@@ -567,1138 +419,1164 @@
             max-height: 500px;
             overflow-y: auto;
             border: 1px solid var(--border);
-            background: #fdfcf9;
-            -webkit-overflow-scrolling: touch;
+            background: var(--input-bg);
         }
-        .result-area.visible {
-            display: block;
+        .result-area.visible { display: block; }
+        .char-correct { color: var(--correct); background: var(--correct-bg); border-radius: 4px; padding: 1px 2px; }
+        .char-wrong { color: var(--wrong); background: var(--wrong-bg); border-radius: 4px; padding: 1px 3px; font-weight: 700; text-decoration: underline wavy var(--wrong); }
+        .char-missing { color: #fff; background: var(--missing-bg); border-radius: 4px; padding: 1px 3px; font-weight: 700; }
+        .char-extra { color: var(--wrong); background: var(--extra-bg); border-radius: 4px; padding: 1px 3px; text-decoration: line-through; }
+
+        /* Side-by-side */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 12px;
+            font-size: var(--font-base);
+            line-height: 2.0;
         }
-        .result-area .char-correct {
-            color: var(--correct);
-            background: var(--correct-bg);
-            border-radius: 4px;
-            padding: 1px 2px;
-        }
-        .result-area .char-wrong {
-            color: var(--wrong);
-            background: var(--wrong-bg);
-            border-radius: 4px;
-            padding: 1px 3px;
-            font-weight: 700;
-            text-decoration: underline wavy var(--wrong);
-        }
-        .result-area .char-missing {
-            color: #fff;
-            background: var(--missing-bg);
-            border-radius: 4px;
-            padding: 1px 3px;
-            font-weight: 700;
-        }
-        .result-area .char-extra {
-            color: var(--wrong);
-            background: var(--extra-bg);
-            border-radius: 4px;
-            padding: 1px 3px;
-            text-decoration: line-through;
-        }
+        .compare-col { padding: 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); }
+        .compare-col h4 { color: var(--primary); margin-bottom: 8px; font-size: var(--font-small); border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+        .compare-col .line { display: flex; gap: 4px; flex-wrap: wrap; }
+        .compare-col .line .char-correct, .compare-col .line .char-wrong, .compare-col .line .char-missing, .compare-col .line .char-extra { display: inline-block; }
+
         .score-bar {
             display: flex;
             align-items: center;
             gap: 16px;
             flex-wrap: wrap;
             padding: 16px 20px;
-            background: #faf6f0;
+            background: var(--input-bg);
             border-radius: var(--radius-sm);
             margin-top: 16px;
             border: 1px solid var(--border);
         }
-        .score-bar .score-text {
-            font-size: var(--font-large);
-            font-weight: 700;
-            color: var(--primary);
-        }
-        .score-bar .score-detail {
-            color: var(--text-light);
+        .score-bar .score-text { font-size: var(--font-large); font-weight: 700; color: var(--primary); }
+        .progress-bar { flex: 1; min-width: 120px; height: 14px; background: var(--border); border-radius: 7px; overflow: hidden; }
+        .progress-bar .fill { height: 100%; background: var(--correct); border-radius: 7px; transition: width 0.5s ease; }
+
+        .original-text { display: none; margin-top: 16px; padding: 20px 24px; background: var(--input-bg); border: 1px dashed var(--border); border-radius: var(--radius-sm); white-space: pre-wrap; max-height: 500px; overflow-y: auto; }
+        .original-text.visible { display: block; }
+        .original-text .label { color: var(--primary); font-weight: 700; display: block; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+        /* History & Stats */
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 12px 16px;
+            background: var(--input-bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            margin-top: 12px;
             font-size: var(--font-small);
         }
-        .progress-bar {
-            flex: 1;
-            min-width: 120px;
-            height: 14px;
-            background: #e0d5c5;
-            border-radius: 7px;
-            overflow: hidden;
-        }
-        .progress-bar .fill {
-            height: 100%;
-            background: var(--correct);
-            border-radius: 7px;
-            transition: width 0.5s ease;
-        }
-        .original-text {
-            display: none;
-            margin-top: 16px;
-            padding: 20px 24px;
-            background: #fdfcf9;
-            border: 1px dashed var(--border);
-            border-radius: var(--radius-sm);
-            font-size: var(--font-base);
-            line-height: 2.0;
-            letter-spacing: 1px;
-            white-space: pre-wrap;
-            color: var(--text);
-            max-height: 500px;
-            overflow-y: auto;
-            font-family: "Georgia", "Noto Serif SC", "STSong", "SimSun", serif;
-            -webkit-overflow-scrolling: touch;
-        }
-        .original-text.visible {
-            display: block;
-        }
-        .original-text .label {
-            color: var(--primary);
-            font-weight: 700;
-            font-size: 0.85rem;
-            letter-spacing: 2px;
-            display: block;
-            margin-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 8px;
-        }
-        footer {
-            text-align: center;
-            color: var(--text-light);
-            font-size: 0.85rem;
-            letter-spacing: 1px;
-            padding: 16px 0 24px;
-        }
+        .stats-bar .stat-item { display: flex; align-items: center; gap: 6px; }
+        .stats-bar .stat-value { font-weight: 700; color: var(--primary); }
+
+        /* ===================== Modal ===================== */
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.55);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: var(--modal-overlay);
             z-index: 1000;
             justify-content: center;
             align-items: center;
             padding: 24px;
             backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
         }
-        .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; }
         .modal-content {
             background: var(--card);
             border-radius: var(--radius);
-            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.25);
+            box-shadow: var(--shadow-strong);
             max-width: 1000px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
             padding: 28px 32px;
-            position: relative;
             border: 1px solid var(--border);
-            -webkit-overflow-scrolling: touch;
         }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .modal-header h2 {
-            color: var(--primary);
-            font-size: var(--font-xl);
-            letter-spacing: 1px;
-        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+        .modal-header h2 { color: var(--primary); font-size: var(--font-xl); }
         .modal-close {
-            background: none;
-            border: none;
-            font-size: 2.4rem;
-            cursor: pointer;
-            color: var(--text-light);
-            transition: color var(--transition);
-            line-height: 1;
-            min-width: 56px;
-            min-height: 56px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
+            background: none; border: none; font-size: 2.4rem; cursor: pointer; color: var(--text-light); transition: color var(--transition); line-height: 1; min-width: 56px; min-height: 56px; border-radius: 50%;
         }
-        .modal-close:hover {
-            color: var(--wrong);
-            background: var(--wrong-bg);
+        .modal-close:hover { color: var(--wrong); background: var(--wrong-bg); }
+        .manage-toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
+        .poem-edit-item { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 20px; background: var(--input-bg); margin-bottom: 16px; }
+        .poem-edit-item .field-row { display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+        .poem-edit-item .field-row label { font-size: var(--font-small); color: var(--text-light); min-width: 60px; font-weight: 600; }
+        .poem-edit-item .field-row input, .poem-edit-item .field-row select, .poem-edit-item .field-row textarea {
+            flex: 1; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px; font-family: inherit; font-size: var(--font-base); background: var(--card); color: var(--text); min-height: 48px;
         }
-        .modal-close:active {
-            transform: scale(0.92);
-        }
-        .manage-toolbar {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-            align-items: center;
-        }
-        .poem-edit-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .poem-edit-item {
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 20px;
-            background: #fdfcf9;
-        }
-        .poem-edit-item .field-row {
-            display: flex;
-            gap: 14px;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .poem-edit-item .field-row label {
-            font-size: var(--font-small);
-            color: var(--text-light);
-            min-width: 60px;
-            display: flex;
-            align-items: center;
-            font-weight: 600;
-        }
-        .poem-edit-item .field-row input,
-        .poem-edit-item .field-row select,
-        .poem-edit-item .field-row textarea {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: var(--font-base);
-            background: #fff;
-            color: var(--text);
-            min-height: 48px;
-            -webkit-appearance: none;
-            appearance: none;
-            transition: all var(--transition);
-        }
-        .poem-edit-item .field-row input:focus,
-        .poem-edit-item .field-row select:focus,
-        .poem-edit-item .field-row textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(139, 94, 60, 0.12);
-        }
-        .poem-edit-item .field-row textarea {
-            min-height: 100px;
-            resize: vertical;
-            line-height: 1.7;
-        }
-        .poem-edit-item .field-row select {
-            cursor: pointer;
-            min-width: 130px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b5e3c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            padding-right: 36px;
-        }
-        .poem-edit-item .field-row .custom-subcat-input {
-            display: none;
-        }
-        .poem-edit-item .field-row .custom-subcat-input.visible {
-            display: block;
-        }
-        .poem-edit-item .delete-btn {
-            background: var(--wrong-bg);
-            color: var(--wrong);
-            border: 1.5px solid #ffcdd2;
-            border-radius: 10px;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-size: var(--font-small);
-            transition: all var(--transition);
-            min-height: 44px;
-            font-family: inherit;
-        }
-        .poem-edit-item .delete-btn:hover {
-            background: var(--wrong);
-            color: #fff;
-        }
-        .poem-edit-item .delete-btn:active {
-            transform: scale(0.95);
-        }
-        .empty-hint {
-            text-align: center;
-            color: var(--text-light);
-            padding: 40px 20px;
-            font-style: italic;
-            font-size: var(--font-base);
-        }
+        .poem-edit-item .field-row textarea { min-height: 100px; resize: vertical; }
+        .poem-edit-item .field-row select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b5e3c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+        .custom-subcat-input { display: none; }
+        .custom-subcat-input.visible { display: block; }
+        .delete-btn { background: var(--wrong-bg); color: var(--wrong); border: 1.5px solid #ffcdd2; border-radius: 10px; padding: 10px 20px; cursor: pointer; font-size: var(--font-small); transition: all var(--transition); font-family: inherit; }
+        .delete-btn:hover { background: var(--wrong); color: #fff; }
 
-        @media (min-width: 1024px) and (max-width: 1366px) {
-            .sidebar {
-                flex: 0 0 300px;
-            }
-            .card {
-                padding: 24px 26px;
-            }
-            .input-area textarea {
-                min-height: 340px;
-            }
-        }
+        /* ===================== Responsive ===================== */
         @media (max-width: 1024px) {
-            .main-layout {
-                flex-direction: column;
-            }
-            .sidebar {
-                flex: none;
-                width: 100%;
-                position: static;
-                max-height: 320px;
-                padding: 16px;
-                flex-shrink: 0;
-            }
-            .poem-btn {
-                white-space: normal;
-            }
-            .card {
-                padding: 20px;
-            }
-            .input-area textarea {
-                min-height: 280px;
-            }
-            .btn-manage {
-                position: static;
-                margin-top: 8px;
-            }
-            header {
-                flex-direction: column;
-            }
-            .modal-content {
-                padding: 20px;
-                max-height: 85vh;
-            }
+            .main-layout { flex-direction: column; }
+            .sidebar { flex: none; width: 100%; position: static; max-height: 320px; }
+            .poem-btn { white-space: normal; }
+            .card { padding: 20px; }
+            .compare-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
-            body {
-                padding: 12px;
-                font-size: 15px;
-            }
-            .title-bar h2 {
-                font-size: 18px;
-            }
-            .btn {
-                padding: 10px 18px;
-                font-size: 14px;
-                min-height: 42px;
-            }
-            .input-area textarea {
-                min-height: 220px;
-                font-size: 15px;
-                padding: 14px 16px;
-            }
-            .modal-content {
-                padding: 16px;
-            }
-            .poem-edit-item .field-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .poem-edit-item .field-row label {
-                min-width: auto;
-            }
-            .sidebar {
-                max-height: 280px;
-            }
+            body { padding: 12px; font-size: 15px; }
+            .title-bar h2 { font-size: 18px; }
+            .btn { padding: 10px 18px; font-size: 14px; min-height: 42px; }
+            .input-area textarea { min-height: 200px; font-size: 15px; padding: 14px 16px; }
+            .modal-content { padding: 16px; }
+            .sidebar { max-height: 280px; }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <h1>📜 古诗文默写检查</h1>
-            <p>统编版七年级上册 · 数据自动保存</p>
-            <button class="btn-manage" id="openManageBtn">⚙️ 自定义题库</button>
-        </header>
-
-        <div class="main-layout">
-            <aside class="sidebar" id="sidebar">
-                <h2>📖 篇目列表</h2>
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="🔍 搜索标题或作者..." autocomplete="off">
-                    <button class="search-clear" id="searchClearBtn" title="清空搜索">×</button>
-                </div>
-                <div class="search-results" id="searchResults"></div>
-                <div id="gradeAccordion"></div>
-            </aside>
-
-            <main class="content-area" id="contentArea">
-                <div class="card">
-                    <div class="title-bar">
-                        <div>
-                            <h2 id="currentTitle">观沧海</h2>
-                            <span class="meta" id="currentMeta">曹操</span>
-                        </div>
-                        <div class="btn-group">
-                            <button class="btn btn-outline btn-sm" id="toggleOriginalBtn">📄 原文</button>
-                            <button class="btn btn-outline btn-sm" id="clearBtn">🗑️ 清空</button>
-                        </div>
-                    </div>
-                    <div class="input-area">
-                        <textarea id="inputText" placeholder="请在此默写所选篇目的全文……&#10;一字一标点都不可出错哦！"></textarea>
-                    </div>
-                    <div class="btn-group" style="margin-top:16px; gap:12px;">
-                        <button class="btn btn-primary" id="checkBtn">✅ 检查默写</button>
-                        <button class="btn btn-outline" id="resetBtn">🔄 重新开始</button>
-                    </div>
-                    <div class="score-bar" id="scoreBar" style="display:none;">
-                        <span class="score-text" id="scoreText">正确率：0%</span>
-                        <span class="score-detail" id="scoreDetail"></span>
-                        <div class="progress-bar">
-                            <div class="fill" id="progressFill" style="width:0%;"></div>
-                        </div>
-                    </div>
-                    <div class="result-area" id="resultArea"></div>
-                </div>
-                <div class="card">
-                    <div class="original-text" id="originalText">
-                        <span class="label">📌 课文原文（对照用）</span>
-                        <span id="originalContent"></span>
-                    </div>
-                </div>
-            </main>
+<div class="app-container">
+    <header>
+        <h1>📜 古诗文默写</h1>
+        <div class="header-actions">
+            <button class="btn-icon" id="themeToggleBtn" aria-label="切换主题">🌓 主题</button>
+            <button class="btn-icon" id="randomBtn" aria-label="随机抽题">🎲 随机</button>
+            <button class="btn-icon" id="speakBtn" aria-label="朗读原文">🔊 朗读</button>
+            <button class="btn-manage" id="openManageBtn">⚙️ 题库</button>
         </div>
-        <footer>
-            ⚠️ 严格要求：一字一标点符号都不能错 &nbsp;|&nbsp; 数据自动保存到浏览器
-        </footer>
-    </div>
+    </header>
 
-    <!-- 自定义题库模态框 -->
-    <div class="modal-overlay" id="manageModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📚 自定义题库管理</h2>
-                <button class="modal-close" id="closeManageBtn">&times;</button>
+    <div class="main-layout">
+        <aside class="sidebar" id="sidebar">
+            <h2>📖 篇目列表</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 搜索标题或作者..." autocomplete="off">
+                <button class="search-clear" id="searchClearBtn" aria-label="清空搜索">×</button>
             </div>
-            <div class="manage-toolbar">
-                <button class="btn btn-primary btn-sm" id="addPoemBtn">➕ 新增</button>
-                <button class="btn btn-primary btn-sm" id="saveManageBtn">💾 保存</button>
-                <button class="btn btn-outline btn-sm" id="exportBtn">📤 导出</button>
-                <button class="btn btn-outline btn-sm" id="importBtn">📥 导入</button>
-                <button class="btn btn-outline btn-sm" id="restoreDefaultBtn">🔄 恢复默认</button>
-                <input type="file" id="importFileInput" accept=".json" style="display:none;">
+            <div class="search-results" id="searchResults"></div>
+            <div id="gradeAccordion"></div>
+            <div class="stats-bar" id="statsBar">
+                <span class="stat-item">📚 总篇目: <span class="stat-value" id="totalPoemsCount">0</span></span>
+                <span class="stat-item">✅ 已掌握: <span class="stat-value" id="masteredCount">0</span></span>
+                <span class="stat-item">📝 默写次数: <span class="stat-value" id="totalAttempts">0</span></span>
             </div>
-            <div class="poem-edit-list" id="poemEditList"></div>
+        </aside>
+
+        <main class="content-area">
+            <div class="card">
+                <div class="title-bar">
+                    <div>
+                        <h2 id="currentTitle">观沧海</h2>
+                        <span class="meta" id="currentMeta">曹操</span>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-outline btn-sm" id="toggleViewBtn">📊 并排对比</button>
+                        <button class="btn btn-outline btn-sm" id="toggleOriginalBtn">📄 原文</button>
+                        <button class="btn btn-outline btn-sm" id="clearBtn">🗑️ 清空</button>
+                    </div>
+                </div>
+                <div class="input-area">
+                    <textarea id="inputText" placeholder="在此默写全文… (支持Ctrl+Enter快速检查)"></textarea>
+                </div>
+                <div class="btn-group" style="margin-top:16px; gap:12px;">
+                    <button class="btn btn-primary" id="checkBtn">✅ 检查默写</button>
+                    <button class="btn btn-outline" id="resetBtn">🔄 重新开始</button>
+                    <button class="btn btn-outline btn-sm" id="examModeBtn">📝 考试模式(5篇)</button>
+                </div>
+                <div class="score-bar" id="scoreBar" style="display:none;">
+                    <span class="score-text" id="scoreText">正确率：0%</span>
+                    <span class="score-detail" id="scoreDetail"></span>
+                    <div class="progress-bar"><div class="fill" id="progressFill" style="width:0%;"></div></div>
+                </div>
+                <div class="result-area" id="resultArea"></div>
+                <div class="compare-grid" id="compareGrid" style="display:none;"></div>
+            </div>
+            <div class="card">
+                <div class="original-text" id="originalText">
+                    <span class="label">📌 课文原文</span>
+                    <span id="originalContent"></span>
+                </div>
+            </div>
+            <!-- 错题本快捷入口 -->
+            <div class="card" style="padding:16px 24px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                    <span style="font-weight:600; color:var(--primary);">📕 错题本</span>
+                    <span id="wrongCountDisplay" style="font-size:var(--font-small); color:var(--text-light);">共 0 个错字</span>
+                    <button class="btn btn-sm btn-outline" id="reviewWrongBtn">🔁 复习错题</button>
+                    <button class="btn btn-sm btn-outline" id="clearWrongBtn">🗑️ 清空错题</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <footer style="text-align:center; color:var(--text-light); font-size:0.85rem; padding:16px 0 8px;">
+        ⚠️ 一字一标点都不能错 · 支持暗色/并排/错题本/考试模式 · 数据自动保存
+    </footer>
+</div>
+
+<!-- ===================== Manage Modal ===================== -->
+<div class="modal-overlay" id="manageModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📚 题库管理</h2>
+            <button class="modal-close" id="closeManageBtn">&times;</button>
         </div>
+        <div class="manage-toolbar">
+            <button class="btn btn-primary btn-sm" id="addPoemBtn">➕ 新增</button>
+            <button class="btn btn-primary btn-sm" id="saveManageBtn">💾 保存</button>
+            <button class="btn btn-outline btn-sm" id="exportBtn">📤 导出</button>
+            <button class="btn btn-outline btn-sm" id="importBtn">📥 导入</button>
+            <button class="btn btn-outline btn-sm" id="restoreDefaultBtn">🔄 恢复默认</button>
+            <input type="file" id="importFileInput" accept=".json" style="display:none;">
+        </div>
+        <div class="poem-edit-list" id="poemEditList"></div>
     </div>
+</div>
 
-    <script>
-        (function() {
-            // ===================== 初始题库 =====================
-            const initialPoems = [{
-                id: 1, title: "观沧海", author: "曹操",
-                grade: "七年级", volume: "上册", subcategory: "课内古诗词",
-                text: "东临碣石，以观沧海。\n水何澹澹，山岛竦峙。\n树木丛生，百草丰茂。\n秋风萧瑟，洪波涌起。\n日月之行，若出其中；\n星汉灿烂，若出其里。\n幸甚至哉，歌以咏志。"
-            }, {
-                id: 2, title: "闻王昌龄左迁龙标遥有此寄", author: "李白",
-                grade: "七年级", volume: "上册", subcategory: "课内古诗词",
-                text: "杨花落尽子规啼，\n闻道龙标过五溪。\n我寄愁心与明月，\n随君直到夜郎西。"
-            }, {
-                id: 3, title: "次北固山下", author: "王湾",
-                grade: "七年级", volume: "上册", subcategory: "课内古诗词",
-                text: "客路青山外，行舟绿水前。\n潮平两岸阔，风正一帆悬。\n海日生残夜，江春入旧年。\n乡书何处达？归雁洛阳边。"
-            }, {
-                id: 4, title: "天净沙·秋思", author: "马致远",
-                grade: "七年级", volume: "上册", subcategory: "课内古诗词",
-                text: "枯藤老树昏鸦，\n小桥流水人家，\n古道西风瘦马。\n夕阳西下，\n断肠人在天涯。"
-            }, {
-                id: 5, title: "咏雪", author: "《世说新语》刘义庆",
-                grade: "七年级", volume: "上册", subcategory: "课内文言文",
-                text: "谢太傅寒雪日内集，与儿女讲论文义。俄而雪骤，公欣然曰：\u201c白雪纷纷何所似？\u201d兄子胡儿曰：\u201c撒盐空中差可拟。\u201d兄女曰：\u201c未若柳絮因风起。\u201d公大笑乐。即公大兄无奕女，左将军王凝之妻也。"
-            }, {
-                id: 6, title: "陈太丘与友期行", author: "《世说新语》刘义庆",
-                grade: "七年级", volume: "上册", subcategory: "课内文言文",
-                text: "陈太丘与友期行，期日中。过中不至，太丘舍去，去后乃至。元方时年七岁，门外戏。客问元方：\u201c尊君在不？\u201d答曰：\u201c待君久不至，已去。\u201d友人便怒曰：\u201c非人哉！与人期行，相委而去。\u201d元方曰：\u201c君与家君期日中。日中不至，则是无信；对子骂父，则是无礼。\u201d友人惭，下车引之。元方入门不顾。"
-            }, {
-                id: 7, title: "《论语》十二章", author: "《论语》",
-                grade: "七年级", volume: "上册", subcategory: "课内文言文",
-                text: "子曰：\u201c学而时习之，不亦说乎？有朋自远方来，不亦乐乎？人不知而不愠，不亦君子乎？\u201d\n曾子曰：\u201c吾日三省吾身：为人谋而不忠乎？与朋友交而不信乎？传不习乎？\u201d\n子曰：\u201c吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。\u201d\n子曰：\u201c温故而知新，可以为师矣。\u201d\n子曰：\u201c学而不思则罔，思而不学则殆。\u201d\n子曰：\u201c贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。贤哉，回也！\u201d\n子曰：\u201c知之者不如好之者，好之者不如乐之者。\u201d\n子曰：\u201c饭疏食，饮水，曲肱而枕之，乐亦在其中矣。不义而富且贵，于我如浮云。\u201d\n子曰：\u201c三人行，必有我师焉。择其善者而从之，其不善者而改之。\u201d\n子在川上曰：\u201c逝者如斯夫，不舍昼夜。\u201d\n子曰：\u201c三军可夺帅也，匹夫不可夺志也。\u201d\n子夏曰：\u201c博学而笃志，切问而近思，仁在其中矣。\u201d"
-            }, {
-                id: 8, title: "诫子书", author: "诸葛亮",
-                grade: "七年级", volume: "上册", subcategory: "课内文言文",
-                text: "夫君子之行，静以修身，俭以养德。非淡泊无以明志，非宁静无以致远。夫学须静也，才须学也，非学无以广才，非志无以成学。淫慢则不能励精，险躁则不能治性。年与时驰，意与日去，遂成枯落，多不接世，悲守穷庐，将复何及！"
-            }, {
-                id: 9, title: "狼", author: "蒲松龄",
-                grade: "七年级", volume: "上册", subcategory: "课内文言文",
-                text: "一屠晚归，担中肉尽，止有剩骨。途中两狼，缀行甚远。屠惧，投以骨。一狼得骨止，一狼仍从。复投之，后狼止而前狼又至。骨已尽矣，而两狼之并驱如故。屠大窘，恐前后受其敌。顾野有麦场，场主积薪其中，苫蔽成丘。屠乃奔倚其下，弛担持刀。狼不敢前，眈眈相向。少时，一狼径去，其一犬坐于前。久之，目似瞑，意暇甚。屠暴起，以刀劈狼首，又数刀毙之。方欲行，转视积薪后，一狼洞其中，意将隧入以攻其后也。身已半入，止露尻尾。屠自后断其股，亦毙之。乃悟前狼假寐，盖以诱敌。狼亦黠矣，而顷刻两毙，禽兽之变诈几何哉？止增笑耳。"
-            }, {
-                id: 10, title: "穿井得一人", author: "《吕氏春秋》",
-                grade: "七年级", volume: "上册", subcategory: "课内文言文",
-                text: "宋之丁氏，家无井而出溉汲，常一人居外。及其家穿井，告人曰：\u201c吾穿井得一人。\u201d有闻而传之者：\u201c丁氏穿井得一人。\u201d国人道之，闻之于宋君。宋君令人问之于丁氏，丁氏对曰：\u201c得一人之使，非得一人于井中也。\u201d求闻之若此，不若无闻也。"
-            }, {
-                id: 11, title: "杞人忧天", author: "《列子》",
-                grade: "七年级", volume: "上册", subcategory: "课内文言文",
-                text: "杞国有人忧天地崩坠，身亡所寄，废寝食者。又有忧彼之所忧者，因往晓之，曰：\u201c天，积气耳，亡处亡气。若屈伸呼吸，终日在天中行止，奈何忧崩坠乎？\u201d其人曰：\u201c天果积气，日月星宿，不当坠耶？\u201d晓之者曰：\u201c日月星宿，亦积气中之有光耀者，只使坠，亦不能有所中伤。\u201d其人曰：\u201c奈地坏何？\u201d晓之者曰：\u201c地，积块耳，充塞四虚，亡处亡块。若躇步跐蹈，终日在地上行止，奈何忧其坏？\u201d其人舍然大喜，晓之者亦舍然大喜。"
-            }, {
-                id: 12, title: "峨眉山月歌", author: "李白",
-                grade: "七年级", volume: "上册", subcategory: "课外古诗词诵读",
-                text: "峨眉山月半轮秋，\n影入平羌江水流。\n夜发清溪向三峡，\n思君不见下渝州。"
-            }, {
-                id: 13, title: "江南逢李龟年", author: "杜甫",
-                grade: "七年级", volume: "上册", subcategory: "课外古诗词诵读",
-                text: "岐王宅里寻常见，\n崔九堂前几度闻。\n正是江南好风景，\n落花时节又逢君。"
-            }, {
-                id: 14, title: "行军九日思长安故园", author: "岑参",
-                grade: "七年级", volume: "上册", subcategory: "课外古诗词诵读",
-                text: "强欲登高去，\n无人送酒来。\n遥怜故园菊，\n应傍战场开。"
-            }, {
-                id: 15, title: "夜上受降城闻笛", author: "李益",
-                grade: "七年级", volume: "上册", subcategory: "课外古诗词诵读",
-                text: "回乐烽前沙似雪，\n受降城外月如霜。\n不知何处吹芦管，\n一夜征人尽望乡。"
-            }, {
-                id: 16, title: "秋词（其一）", author: "刘禹锡",
-                grade: "七年级", volume: "上册", subcategory: "课外古诗词诵读",
-                text: "自古逢秋悲寂寥，\n我言秋日胜春朝。\n晴空一鹤排云上，\n便引诗情到碧霄。"
-            }, {
-                id: 17, title: "夜雨寄北", author: "李商隐",
-                grade: "七年级", volume: "上册", subcategory: "课外古诗词诵读",
-                text: "君问归期未有期，\n巴山夜雨涨秋池。\n何当共剪西窗烛，\n却话巴山夜雨时。"
-            }, {
-                id: 18, title: "十一月四日风雨大作（其二）", author: "陆游",
-                grade: "七年级", volume: "上册", subcategory: "课外古诗词诵读",
-                text: "僵卧孤村不自哀，\n尚思为国戍轮台。\n夜阑卧听风吹雨，\n铁马冰河入梦来。"
-            }, {
-                id: 19, title: "潼关", author: "谭嗣同",
-                grade: "七年级", volume: "上册", subcategory: "课外古诗词诵读",
-                text: "终古高云簇此城，\n秋风吹散马蹄声。\n河流大野犹嫌束，\n山入潼关不解平。"
-            }];
+<script>
+    (function() {
+        // ===================================================================
+        // 1. 初始数据
+        // ===================================================================
+        const INITIAL_POEMS = [
+            { id:1, title:"观沧海", author:"曹操", grade:"七年级", volume:"上册", subcategory:"课内古诗词", text:"东临碣石，以观沧海。\n水何澹澹，山岛竦峙。\n树木丛生，百草丰茂。\n秋风萧瑟，洪波涌起。\n日月之行，若出其中；\n星汉灿烂，若出其里。\n幸甚至哉，歌以咏志。" },
+            { id:2, title:"闻王昌龄左迁龙标遥有此寄", author:"李白", grade:"七年级", volume:"上册", subcategory:"课内古诗词", text:"杨花落尽子规啼，\n闻道龙标过五溪。\n我寄愁心与明月，\n随君直到夜郎西。" },
+            { id:3, title:"次北固山下", author:"王湾", grade:"七年级", volume:"上册", subcategory:"课内古诗词", text:"客路青山外，行舟绿水前。\n潮平两岸阔，风正一帆悬。\n海日生残夜，江春入旧年。\n乡书何处达？归雁洛阳边。" },
+            { id:4, title:"天净沙·秋思", author:"马致远", grade:"七年级", volume:"上册", subcategory:"课内古诗词", text:"枯藤老树昏鸦，\n小桥流水人家，\n古道西风瘦马。\n夕阳西下，\n断肠人在天涯。" },
+            { id:5, title:"咏雪", author:"《世说新语》", grade:"七年级", volume:"上册", subcategory:"课内文言文", text:"谢太傅寒雪日内集，与儿女讲论文义。俄而雪骤，公欣然曰：“白雪纷纷何所似？”兄子胡儿曰：“撒盐空中差可拟。”兄女曰：“未若柳絮因风起。”公大笑乐。即公大兄无奕女，左将军王凝之妻也。" },
+            { id:6, title:"陈太丘与友期行", author:"《世说新语》", grade:"七年级", volume:"上册", subcategory:"课内文言文", text:"陈太丘与友期行，期日中。过中不至，太丘舍去，去后乃至。元方时年七岁，门外戏。客问元方：“尊君在不？”答曰：“待君久不至，已去。”友人便怒曰：“非人哉！与人期行，相委而去。”元方曰：“君与家君期日中。日中不至，则是无信；对子骂父，则是无礼。”友人惭，下车引之。元方入门不顾。" },
+            { id:7, title:"《论语》十二章", author:"《论语》", grade:"七年级", volume:"上册", subcategory:"课内文言文", text:"子曰：“学而时习之，不亦说乎？有朋自远方来，不亦乐乎？人不知而不愠，不亦君子乎？”\n曾子曰：“吾日三省吾身：为人谋而不忠乎？与朋友交而不信乎？传不习乎？”\n子曰：“吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。”\n子曰：“温故而知新，可以为师矣。”\n子曰：“学而不思则罔，思而不学则殆。”\n子曰：“贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。贤哉，回也！”\n子曰：“知之者不如好之者，好之者不如乐之者。”\n子曰：“饭疏食，饮水，曲肱而枕之，乐亦在其中矣。不义而富且贵，于我如浮云。”\n子曰：“三人行，必有我师焉。择其善者而从之，其不善者而改之。”\n子在川上曰：“逝者如斯夫，不舍昼夜。”\n子曰：“三军可夺帅也，匹夫不可夺志也。”\n子夏曰：“博学而笃志，切问而近思，仁在其中矣。”" },
+            { id:8, title:"诫子书", author:"诸葛亮", grade:"七年级", volume:"上册", subcategory:"课内文言文", text:"夫君子之行，静以修身，俭以养德。非淡泊无以明志，非宁静无以致远。夫学须静也，才须学也，非学无以广才，非志无以成学。淫慢则不能励精，险躁则不能治性。年与时驰，意与日去，遂成枯落，多不接世，悲守穷庐，将复何及！" },
+            { id:9, title:"狼", author:"蒲松龄", grade:"七年级", volume:"上册", subcategory:"课内文言文", text:"一屠晚归，担中肉尽，止有剩骨。途中两狼，缀行甚远。屠惧，投以骨。一狼得骨止，一狼仍从。复投之，后狼止而前狼又至。骨已尽矣，而两狼之并驱如故。屠大窘，恐前后受其敌。顾野有麦场，场主积薪其中，苫蔽成丘。屠乃奔倚其下，弛担持刀。狼不敢前，眈眈相向。少时，一狼径去，其一犬坐于前。久之，目似瞑，意暇甚。屠暴起，以刀劈狼首，又数刀毙之。方欲行，转视积薪后，一狼洞其中，意将隧入以攻其后也。身已半入，止露尻尾。屠自后断其股，亦毙之。乃悟前狼假寐，盖以诱敌。狼亦黠矣，而顷刻两毙，禽兽之变诈几何哉？止增笑耳。" },
+            { id:10, title:"穿井得一人", author:"《吕氏春秋》", grade:"七年级", volume:"上册", subcategory:"课内文言文", text:"宋之丁氏，家无井而出溉汲，常一人居外。及其家穿井，告人曰：“吾穿井得一人。”有闻而传之者：“丁氏穿井得一人。”国人道之，闻之于宋君。宋君令人问之于丁氏，丁氏对曰：“得一人之使，非得一人于井中也。”求闻之若此，不若无闻也。" },
+            { id:11, title:"杞人忧天", author:"《列子》", grade:"七年级", volume:"上册", subcategory:"课内文言文", text:"杞国有人忧天地崩坠，身亡所寄，废寝食者。又有忧彼之所忧者，因往晓之，曰：“天，积气耳，亡处亡气。若屈伸呼吸，终日在天中行止，奈何忧崩坠乎？”其人曰：“天果积气，日月星宿，不当坠耶？”晓之者曰：“日月星宿，亦积气中之有光耀者，只使坠，亦不能有所中伤。”其人曰：“奈地坏何？”晓之者曰：“地，积块耳，充塞四虚，亡处亡块。若躇步跐蹈，终日在地上行止，奈何忧其坏？”其人舍然大喜，晓之者亦舍然大喜。" },
+            { id:12, title:"峨眉山月歌", author:"李白", grade:"七年级", volume:"上册", subcategory:"课外古诗词诵读", text:"峨眉山月半轮秋，\n影入平羌江水流。\n夜发清溪向三峡，\n思君不见下渝州。" },
+            { id:13, title:"江南逢李龟年", author:"杜甫", grade:"七年级", volume:"上册", subcategory:"课外古诗词诵读", text:"岐王宅里寻常见，\n崔九堂前几度闻。\n正是江南好风景，\n落花时节又逢君。" },
+            { id:14, title:"行军九日思长安故园", author:"岑参", grade:"七年级", volume:"上册", subcategory:"课外古诗词诵读", text:"强欲登高去，\n无人送酒来。\n遥怜故园菊，\n应傍战场开。" },
+            { id:15, title:"夜上受降城闻笛", author:"李益", grade:"七年级", volume:"上册", subcategory:"课外古诗词诵读", text:"回乐烽前沙似雪，\n受降城外月如霜。\n不知何处吹芦管，\n一夜征人尽望乡。" },
+            { id:16, title:"秋词（其一）", author:"刘禹锡", grade:"七年级", volume:"上册", subcategory:"课外古诗词诵读", text:"自古逢秋悲寂寥，\n我言秋日胜春朝。\n晴空一鹤排云上，\n便引诗情到碧霄。" },
+            { id:17, title:"夜雨寄北", author:"李商隐", grade:"七年级", volume:"上册", subcategory:"课外古诗词诵读", text:"君问归期未有期，\n巴山夜雨涨秋池。\n何当共剪西窗烛，\n却话巴山夜雨时。" },
+            { id:18, title:"十一月四日风雨大作（其二）", author:"陆游", grade:"七年级", volume:"上册", subcategory:"课外古诗词诵读", text:"僵卧孤村不自哀，\n尚思为国戍轮台。\n夜阑卧听风吹雨，\n铁马冰河入梦来。" },
+            { id:19, title:"潼关", author:"谭嗣同", grade:"七年级", volume:"上册", subcategory:"课外古诗词诵读", text:"终古高云簇此城，\n秋风吹散马蹄声。\n河流大野犹嫌束，\n山入潼关不解平。" }
+        ];
 
-            const PRESET_GRADES = ['七年级', '八年级', '九年级'];
-            const PRESET_VOLUMES = ['上册', '下册'];
-            const PRESET_SUBCATEGORIES = ['课内古诗词', '课内文言文', '课外古诗词诵读', '其他'];
+        // ===================================================================
+        // 2. 工具 & 存储服务
+        // ===================================================================
+        const PRESET_GRADES = ['七年级','八年级','九年级'];
+        const PRESET_VOLUMES = ['上册','下册'];
+        const PRESET_SUBCATEGORIES = ['课内古诗词','课内文言文','课外古诗词诵读','其他'];
 
-            // ===================== 题库状态 =====================
-            let poems = JSON.parse(JSON.stringify(initialPoems));
-            let nextId = poems.length + 1;
-            let currentId = poems[0]?.id || null;
-            let originalVisible = false;
-            let expandedGrades = {};
-            let expandedVolumes = {};
-            let searchMode = false;
+        function escapeHtml(str) {
+            if (!str) return '';
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
 
-            // ===================== 本地存储 =====================
-            function loadPoemsFromStorage() {
-                try {
-                    const stored = localStorage.getItem('poemsData');
-                    if (stored) {
-                        const parsed = JSON.parse(stored);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            return parsed;
-                        }
+        // 净化输入 (DOMPurify)
+        function sanitizeHtml(html) {
+            if (window.DOMPurify) return DOMPurify.sanitize(html);
+            return html; // fallback
+        }
+
+        function debounce(fn, delay) {
+            let timer;
+            return function(...args) {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
+        // 存储
+        const Storage = {
+            get(key, def) {
+                try { const v = localStorage.getItem('poemApp_'+key); return v ? JSON.parse(v) : def; } catch(e){ return def; }
+            },
+            set(key, val) {
+                localStorage.setItem('poemApp_'+key, JSON.stringify(val));
+            }
+        };
+
+        // ===================================================================
+        // 3. 应用状态
+        // ===================================================================
+        let poems = [];
+        let nextId = 1;
+        let currentId = null;
+        let expandedGrades = {};
+        let expandedVolumes = {};
+        let originalVisible = false;
+        let compareMode = false;
+        let theme = 'light'; // 'light' | 'dark' | 'system'
+        let history = []; // {poemId, accuracy, replaces, deletes, inserts, timestamp, totalChars}
+        let wrongChars = {}; // { '澹': {count:3, contexts:['水何澹澹']} }
+        let draft = {}; // { poemId: text }
+        let examMode = false;
+        let examQueue = [];
+        let examResults = [];
+        let isSpeaking = false;
+
+        // DOM refs
+        const $ = (s) => document.querySelector(s);
+        const $$ = (s) => document.querySelectorAll(s);
+
+        const gradeAccordion = $('#gradeAccordion');
+        const searchInput = $('#searchInput');
+        const searchClearBtn = $('#searchClearBtn');
+        const searchResults = $('#searchResults');
+        const currentTitle = $('#currentTitle');
+        const currentMeta = $('#currentMeta');
+        const inputText = $('#inputText');
+        const checkBtn = $('#checkBtn');
+        const resetBtn = $('#resetBtn');
+        const clearBtn = $('#clearBtn');
+        const toggleOriginalBtn = $('#toggleOriginalBtn');
+        const toggleViewBtn = $('#toggleViewBtn');
+        const resultArea = $('#resultArea');
+        const compareGrid = $('#compareGrid');
+        const scoreBar = $('#scoreBar');
+        const scoreText = $('#scoreText');
+        const scoreDetail = $('#scoreDetail');
+        const progressFill = $('#progressFill');
+        const originalText = $('#originalText');
+        const originalContent = $('#originalContent');
+        const manageModal = $('#manageModal');
+        const poemEditList = $('#poemEditList');
+        const totalPoemsCount = $('#totalPoemsCount');
+        const masteredCount = $('#masteredCount');
+        const totalAttempts = $('#totalAttempts');
+        const wrongCountDisplay = $('#wrongCountDisplay');
+        const themeToggleBtn = $('#themeToggleBtn');
+        const randomBtn = $('#randomBtn');
+        const speakBtn = $('#speakBtn');
+        const examModeBtn = $('#examModeBtn');
+        const reviewWrongBtn = $('#reviewWrongBtn');
+        const clearWrongBtn = $('#clearWrongBtn');
+
+        // ===================================================================
+        // 4. 核心逻辑
+        // ===================================================================
+        function loadState() {
+            poems = Storage.get('poems', JSON.parse(JSON.stringify(INITIAL_POEMS)));
+            nextId = poems.length ? Math.max(...poems.map(p=>p.id)) + 1 : 1;
+            currentId = Storage.get('currentId', poems.length ? poems[0].id : null);
+            expandedGrades = Storage.get('expandedGrades', {});
+            expandedVolumes = Storage.get('expandedVolumes', {});
+            theme = Storage.get('theme', 'light');
+            history = Storage.get('history', []);
+            wrongChars = Storage.get('wrongChars', {});
+            draft = Storage.get('draft', {});
+            applyTheme(theme);
+            renderSidebar();
+            if (currentId && poems.find(p=>p.id===currentId)) selectPoem(currentId);
+            else if (poems.length) selectPoem(poems[0].id);
+            updateStats();
+            updateWrongDisplay();
+            // 恢复草稿
+            if (currentId && draft[currentId]) {
+                inputText.value = draft[currentId];
+            }
+        }
+
+        function saveState() {
+            Storage.set('poems', poems);
+            Storage.set('currentId', currentId);
+            Storage.set('expandedGrades', expandedGrades);
+            Storage.set('expandedVolumes', expandedVolumes);
+            Storage.set('theme', theme);
+            Storage.set('history', history);
+            Storage.set('wrongChars', wrongChars);
+            Storage.set('draft', draft);
+        }
+
+        function applyTheme(t) {
+            theme = t;
+            if (t === 'system') {
+                const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', t);
+            }
+            themeToggleBtn.textContent = t === 'dark' ? '☀️ 日间' : t === 'light' ? '🌓 系统' : '🌙 暗色';
+            saveState();
+        }
+
+        function toggleTheme() {
+            if (theme === 'light') applyTheme('dark');
+            else if (theme === 'dark') applyTheme('system');
+            else applyTheme('light');
+        }
+
+        function selectPoem(id) {
+            const poem = poems.find(p => p.id === id);
+            if (!poem) return;
+            currentId = id;
+            currentTitle.textContent = poem.title;
+            currentMeta.textContent = `${poem.author}  |  ${poem.grade} ${poem.volume} · ${poem.subcategory}`;
+            // 恢复草稿
+            if (draft[id]) inputText.value = draft[id];
+            else inputText.value = '';
+            resultArea.classList.remove('visible');
+            resultArea.innerHTML = '';
+            compareGrid.style.display = 'none';
+            scoreBar.style.display = 'none';
+            originalText.classList.remove('visible');
+            originalVisible = false;
+            toggleOriginalBtn.textContent = '📄 原文';
+            toggleViewBtn.textContent = '📊 并排对比';
+            compareMode = false;
+            renderSidebar();
+            saveState();
+            inputText.focus();
+        }
+
+        function diffChars(origArr, userArr) {
+            const m = origArr.length, n = userArr.length;
+            const dp = Array.from({length: m+1}, () => new Uint16Array(n+1));
+            for (let i=0; i<=m; i++) dp[i][0] = i;
+            for (let j=0; j<=n; j++) dp[0][j] = j;
+            for (let i=1; i<=m; i++) {
+                for (let j=1; j<=n; j++) {
+                    const cost = origArr[i-1] === userArr[j-1] ? 0 : 1;
+                    dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
+                }
+            }
+            const ops = [];
+            let i=m, j=n;
+            while (i>0 || j>0) {
+                if (i>0 && j>0 && origArr[i-1] === userArr[j-1]) {
+                    ops.push({type:'equal', char:origArr[i-1]});
+                    i--; j--;
+                } else if (i>0 && j>0 && dp[i][j] === dp[i-1][j-1] + 1) {
+                    ops.push({type:'replace', origChar:origArr[i-1], userChar:userArr[j-1]});
+                    i--; j--;
+                } else if (i>0 && dp[i][j] === dp[i-1][j] + 1) {
+                    ops.push({type:'delete', char:origArr[i-1]});
+                    i--;
+                } else {
+                    ops.push({type:'insert', char:userArr[j-1]});
+                    j--;
+                }
+            }
+            ops.reverse();
+            let correct=0, replaces=0, deletes=0, inserts=0;
+            ops.forEach(op => {
+                if (op.type === 'equal') correct++;
+                else if (op.type === 'replace') replaces++;
+                else if (op.type === 'delete') deletes++;
+                else if (op.type === 'insert') inserts++;
+            });
+            const total = origArr.length;
+            const accuracy = total > 0 ? Math.round((correct/total)*1000)/10 : 0;
+            // 收集错字
+            const wrongList = [];
+            ops.forEach(op => {
+                if (op.type === 'replace') {
+                    wrongList.push({ wrong: op.userChar, correct: op.origChar });
+                } else if (op.type === 'delete') {
+                    wrongList.push({ wrong: '【漏】', correct: op.char });
+                }
+            });
+            return { ops, correct, total, accuracy, replaces, deletes, inserts, wrongList };
+        }
+
+        function checkDictation() {
+            const poem = poems.find(p => p.id === currentId);
+            if (!poem) { alert('请选择一篇诗文'); return; }
+            const user = inputText.value;
+            const orig = poem.text;
+            if (user.trim().length === 0) { alert('请先输入默写内容！'); return; }
+            const origArr = Array.from(orig);
+            const userArr = Array.from(user);
+            const result = diffChars(origArr, userArr);
+            // 保存历史
+            const record = {
+                poemId: poem.id,
+                timestamp: Date.now(),
+                accuracy: result.accuracy,
+                replaces: result.replaces,
+                deletes: result.deletes,
+                inserts: result.inserts,
+                totalChars: result.total
+            };
+            history.push(record);
+            if (history.length > 1000) history = history.slice(-1000); // 限长
+
+            // 更新错题本
+            result.wrongList.forEach(w => {
+                if (w.wrong === '【漏】') {
+                    // 漏字
+                    const key = '【漏】' + w.correct;
+                    if (!wrongChars[key]) wrongChars[key] = { count:0, contexts:[] };
+                    wrongChars[key].count += 1;
+                    if (wrongChars[key].contexts.length < 5) wrongChars[key].contexts.push(w.correct);
+                } else {
+                    if (!wrongChars[w.wrong]) wrongChars[w.wrong] = { count:0, contexts:[] };
+                    wrongChars[w.wrong].count += 1;
+                    if (wrongChars[w.wrong].contexts.length < 5) wrongChars[w.wrong].contexts.push(w.correct);
+                }
+            });
+
+            // 更新掌握状态 (正确率100%标记为掌握)
+            saveState();
+            displayResult(result);
+            updateStats();
+            updateWrongDisplay();
+            // 草稿清除
+            delete draft[currentId];
+            saveState();
+        }
+
+        function displayResult(result) {
+            const { ops, correct, total, accuracy, replaces, deletes, inserts } = result;
+            // 标记视图
+            let html = '';
+            for (const op of ops) {
+                if (op.type === 'equal') {
+                    if (op.char === '\n') html += '<br>';
+                    else html += `<span class="char-correct">${escapeHtml(op.char)}</span>`;
+                } else if (op.type === 'replace') {
+                    if (op.origChar === '\n') html += '<br>';
+                    else html += `<span class="char-wrong" title="原文：${escapeHtml(op.origChar)} → 你写：${escapeHtml(op.userChar)}">${escapeHtml(op.userChar)}</span>`;
+                } else if (op.type === 'delete') {
+                    if (op.char === '\n') html += '<br>';
+                    else html += `<span class="char-missing" title="遗漏：${escapeHtml(op.char)}">${escapeHtml(op.char)}</span>`;
+                } else if (op.type === 'insert') {
+                    if (op.char === '\n') html += '<br>';
+                    else html += `<span class="char-extra" title="多余：${escapeHtml(op.char)}">${escapeHtml(op.char)}</span>`;
+                }
+            }
+            resultArea.innerHTML = sanitizeHtml(html);
+            resultArea.classList.add('visible');
+            resultArea.scrollTop = 0;
+            scoreBar.style.display = 'flex';
+            scoreText.textContent = `正确率：${accuracy}%`;
+            scoreDetail.textContent = `正确 ${correct} / 共 ${total} 字；替换 ${replaces}，缺失 ${deletes}，多余 ${inserts}`;
+            progressFill.style.width = `${accuracy}%`;
+
+            // 并排视图
+            if (compareMode) {
+                renderCompare(result);
+            } else {
+                compareGrid.style.display = 'none';
+            }
+            // 滚动到结果
+            resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function renderCompare(result) {
+            const poem = poems.find(p => p.id === currentId);
+            if (!poem) return;
+            const origLines = poem.text.split('\n');
+            const userLines = inputText.value.split('\n');
+            // 对齐行数
+            const maxLines = Math.max(origLines.length, userLines.length);
+            let origHtml = '', userHtml = '';
+            for (let i=0; i<maxLines; i++) {
+                const o = origLines[i] || '';
+                const u = userLines[i] || '';
+                // 对每行做字符比对
+                const oArr = Array.from(o);
+                const uArr = Array.from(u);
+                const localResult = diffChars(oArr, uArr);
+                let oLineHtml = '', uLineHtml = '';
+                let oIdx=0, uIdx=0;
+                for (const op of localResult.ops) {
+                    if (op.type === 'equal') {
+                        oLineHtml += escapeHtml(op.char);
+                        uLineHtml += escapeHtml(op.char);
+                        oIdx++; uIdx++;
+                    } else if (op.type === 'replace') {
+                        oLineHtml += `<span class="char-correct">${escapeHtml(op.origChar)}</span>`;
+                        uLineHtml += `<span class="char-wrong" title="原文：${escapeHtml(op.origChar)} → 你写：${escapeHtml(op.userChar)}">${escapeHtml(op.userChar)}</span>`;
+                        oIdx++; uIdx++;
+                    } else if (op.type === 'delete') {
+                        oLineHtml += `<span class="char-missing">${escapeHtml(op.char)}</span>`;
+                        uLineHtml += `<span style="opacity:0.3;">_</span>`;
+                        oIdx++;
+                    } else if (op.type === 'insert') {
+                        oLineHtml += `<span style="opacity:0.3;">_</span>`;
+                        uLineHtml += `<span class="char-extra">${escapeHtml(op.char)}</span>`;
+                        uIdx++;
                     }
-                } catch (e) {
-                    console.warn('读取本地题库失败，使用默认题库');
                 }
-                return null;
+                origHtml += `<div class="line">${oLineHtml || '&nbsp;'}</div>`;
+                userHtml += `<div class="line">${uLineHtml || '&nbsp;'}</div>`;
             }
+            compareGrid.innerHTML = `
+                <div class="compare-col"><h4>📖 原文</h4>${origHtml}</div>
+                <div class="compare-col"><h4>✍️ 你的默写</h4>${userHtml}</div>
+            `;
+            compareGrid.style.display = 'grid';
+        }
 
-            function savePoemsToStorage() {
-                try {
-                    localStorage.setItem('poemsData', JSON.stringify(poems));
-                } catch (e) {
-                    console.warn('保存本地题库失败');
+        function toggleCompare() {
+            compareMode = !compareMode;
+            toggleViewBtn.textContent = compareMode ? '📄 标记视图' : '📊 并排对比';
+            if (compareMode) {
+                // 如果有结果，显示并排
+                if (resultArea.classList.contains('visible')) {
+                    const poem = poems.find(p => p.id === currentId);
+                    if (poem) {
+                        const origArr = Array.from(poem.text);
+                        const userArr = Array.from(inputText.value);
+                        const result = diffChars(origArr, userArr);
+                        renderCompare(result);
+                    }
+                } else {
+                    compareGrid.style.display = 'grid';
+                    // 显示原文和当前输入
+                    const poem = poems.find(p => p.id === currentId);
+                    if (poem) {
+                        const origLines = poem.text.split('\n');
+                        const userLines = inputText.value.split('\n');
+                        const maxLines = Math.max(origLines.length, userLines.length);
+                        let oHtml='', uHtml='';
+                        for (let i=0; i<maxLines; i++) {
+                            oHtml += `<div class="line">${escapeHtml(origLines[i] || '')}</div>`;
+                            uHtml += `<div class="line">${escapeHtml(userLines[i] || '')}</div>`;
+                        }
+                        compareGrid.innerHTML = `
+                            <div class="compare-col"><h4>📖 原文</h4>${oHtml}</div>
+                            <div class="compare-col"><h4>✍️ 你的默写</h4>${uHtml}</div>
+                        `;
+                        compareGrid.style.display = 'grid';
+                    }
                 }
+            } else {
+                compareGrid.style.display = 'none';
             }
+        }
 
-            // ===================== DOM =====================
-            const gradeAccordion = document.getElementById('gradeAccordion');
-            const searchInput = document.getElementById('searchInput');
-            const searchClearBtn = document.getElementById('searchClearBtn');
-            const searchResults = document.getElementById('searchResults');
-            const currentTitle = document.getElementById('currentTitle');
-            const currentMeta = document.getElementById('currentMeta');
-            const inputText = document.getElementById('inputText');
-            const checkBtn = document.getElementById('checkBtn');
-            const resetBtn = document.getElementById('resetBtn');
-            const clearBtn = document.getElementById('clearBtn');
-            const toggleOriginalBtn = document.getElementById('toggleOriginalBtn');
-            const resultArea = document.getElementById('resultArea');
-            const scoreBar = document.getElementById('scoreBar');
-            const scoreText = document.getElementById('scoreText');
-            const scoreDetail = document.getElementById('scoreDetail');
-            const progressFill = document.getElementById('progressFill');
-            const originalText = document.getElementById('originalText');
-            const originalContent = document.getElementById('originalContent');
-            const manageModal = document.getElementById('manageModal');
-            const openManageBtn = document.getElementById('openManageBtn');
-            const closeManageBtn = document.getElementById('closeManageBtn');
-            const saveManageBtn = document.getElementById('saveManageBtn');
-            const poemEditList = document.getElementById('poemEditList');
-            const addPoemBtn = document.getElementById('addPoemBtn');
-            const exportBtn = document.getElementById('exportBtn');
-            const importBtn = document.getElementById('importBtn');
-            const importFileInput = document.getElementById('importFileInput');
-            const restoreDefaultBtn = document.getElementById('restoreDefaultBtn');
+        function toggleOriginal() {
+            const poem = poems.find(p => p.id === currentId);
+            if (!poem) return;
+            if (!originalVisible) {
+                originalContent.textContent = poem.text;
+                originalText.classList.add('visible');
+                toggleOriginalBtn.textContent = '🙈 隐藏';
+                originalVisible = true;
+            } else {
+                originalText.classList.remove('visible');
+                toggleOriginalBtn.textContent = '📄 原文';
+                originalVisible = false;
+            }
+        }
 
-            // ===================== 侧边栏渲染 =====================
-            function renderSidebar() {
-                const validGrades = new Set(poems.map(p => p.grade));
-                Object.keys(expandedGrades).forEach(g => { if (!validGrades.has(g)) delete expandedGrades[g]; });
-                const validVolumes = new Set(poems.map(p => p.grade + '/' + p.volume));
-                Object.keys(expandedVolumes).forEach(v => { if (!validVolumes.has(v)) delete expandedVolumes[v]; });
-                const gradeGroups = {};
-                poems.forEach(p => {
-                    if (!gradeGroups[p.grade]) gradeGroups[p.grade] = [];
-                    gradeGroups[p.grade].push(p);
+        function clearAll() {
+            inputText.value = '';
+            resultArea.classList.remove('visible');
+            resultArea.innerHTML = '';
+            scoreBar.style.display = 'none';
+            compareGrid.style.display = 'none';
+            delete draft[currentId];
+            saveState();
+            inputText.focus();
+        }
+
+        function resetPoem() {
+            clearAll();
+            if (currentId) selectPoem(currentId);
+        }
+
+        // ===================================================================
+        // 5. 渲染侧边栏
+        // ===================================================================
+        function renderSidebar() {
+            const validGrades = new Set(poems.map(p=>p.grade));
+            Object.keys(expandedGrades).forEach(g => { if (!validGrades.has(g)) delete expandedGrades[g]; });
+            const gradeGroups = {};
+            poems.forEach(p => {
+                if (!gradeGroups[p.grade]) gradeGroups[p.grade] = [];
+                gradeGroups[p.grade].push(p);
+            });
+            let html = '';
+            for (const [gradeName, gradePoems] of Object.entries(gradeGroups)) {
+                const hasCurrent = gradePoems.some(p=>p.id===currentId);
+                const isExpanded = expandedGrades[gradeName] !== undefined ? expandedGrades[gradeName] : hasCurrent;
+                expandedGrades[gradeName] = isExpanded;
+                const volumeGroups = {};
+                gradePoems.forEach(p => {
+                    if (!volumeGroups[p.volume]) volumeGroups[p.volume] = [];
+                    volumeGroups[p.volume].push(p);
                 });
-                let html = '';
-                for (const [gradeName, gradePoems] of Object.entries(gradeGroups)) {
-                    const hasCurrent = gradePoems.some(p => p.id === currentId);
-                    const isExpanded = expandedGrades[gradeName] !== undefined ? expandedGrades[gradeName] : hasCurrent;
-                    expandedGrades[gradeName] = isExpanded;
-                    const volumeGroups = {};
-                    gradePoems.forEach(p => {
-                        const volKey = p.volume;
-                        if (!volumeGroups[volKey]) volumeGroups[volKey] = [];
-                        volumeGroups[volKey].push(p);
+                let volumesHtml = '';
+                for (const [volName, volPoems] of Object.entries(volumeGroups)) {
+                    const volKey = gradeName + '/' + volName;
+                    const volHasCurrent = volPoems.some(p=>p.id===currentId);
+                    const volExpanded = expandedVolumes[volKey] !== undefined ? expandedVolumes[volKey] : (isExpanded && volHasCurrent);
+                    expandedVolumes[volKey] = volExpanded;
+                    const subcatGroups = {};
+                    volPoems.forEach(p => {
+                        if (!subcatGroups[p.subcategory]) subcatGroups[p.subcategory] = [];
+                        subcatGroups[p.subcategory].push(p);
                     });
-                    let volumesHtml = '';
-                    for (const [volumeName, volumePoems] of Object.entries(volumeGroups)) {
-                        const volKey = gradeName + '/' + volumeName;
-                        const volHasCurrent = volumePoems.some(p => p.id === currentId);
-                        const volExpanded = expandedVolumes[volKey] !== undefined ? expandedVolumes[volKey] : (isExpanded && volHasCurrent);
-                        expandedVolumes[volKey] = volExpanded;
-                        const subcatGroups = {};
-                        volumePoems.forEach(p => {
-                            if (!subcatGroups[p.subcategory]) subcatGroups[p.subcategory] = [];
-                            subcatGroups[p.subcategory].push(p);
+                    let subcatHtml = '';
+                    for (const [subName, subPoems] of Object.entries(subcatGroups)) {
+                        subcatHtml += `<div class="subcategory-title">${escapeHtml(subName)}</div><ul class="poem-list">`;
+                        subPoems.forEach(p => {
+                            subcatHtml += `<li><button class="poem-btn ${p.id===currentId?'active':''}" data-id="${p.id}" title="${escapeHtml(p.title)}"><span>${escapeHtml(p.title)}</span></button></li>`;
                         });
-                        let subcatHtml = '';
-                        for (const [subcatName, subcatPoems] of Object.entries(subcatGroups)) {
-                            subcatHtml += `<div class="subcategory-title">${escapeHtml(subcatName)}</div><ul class="poem-list">`;
-                            subcatPoems.forEach(p => {
-                                subcatHtml += `<li><button class="poem-btn ${p.id === currentId ? 'active' : ''}" data-id="${p.id}" title="${escapeHtml(p.title)}"><span>${escapeHtml(p.title)}</span></button></li>`;
-                            });
-                            subcatHtml += `</ul>`;
-                        }
-                        volumesHtml += `
-                            <div class="volume-group ${volExpanded ? 'expanded' : 'collapsed'}">
-                                <button class="volume-header" data-volume="${escapeHtml(volumeName)}" data-grade="${escapeHtml(gradeName)}">
-                                    <span class="arrow ${volExpanded ? 'expanded' : ''}">▶</span>
-                                    <span class="group-name">${escapeHtml(volumeName)}</span>
-                                    <span class="group-count">${volumePoems.length}</span>
-                                </button>
-                                <div class="volume-body">${subcatHtml}</div>
-                            </div>`;
+                        subcatHtml += `</ul>`;
                     }
-                    html += `
-                        <div class="grade-group ${isExpanded ? 'expanded' : 'collapsed'}" data-grade="${escapeHtml(gradeName)}">
-                            <button class="grade-header" data-grade="${escapeHtml(gradeName)}">
-                                <span class="arrow ${isExpanded ? 'expanded' : ''}">▶</span>
-                                <span class="group-name">${escapeHtml(gradeName)}</span>
-                                <span class="group-count">${gradePoems.length}</span>
+                    volumesHtml += `
+                        <div class="volume-group ${volExpanded?'expanded':'collapsed'}">
+                            <button class="volume-header" data-volume="${escapeHtml(volName)}" data-grade="${escapeHtml(gradeName)}">
+                                <span class="arrow ${volExpanded?'expanded':''}">▶</span>
+                                <span class="group-name">${escapeHtml(volName)}</span>
+                                <span class="group-count">${volPoems.length}</span>
                             </button>
-                            <div class="grade-body">${volumesHtml}</div>
+                            <div class="volume-body">${subcatHtml}</div>
                         </div>`;
                 }
-                gradeAccordion.innerHTML = html;
-
-                document.querySelectorAll('.grade-header').forEach(header => {
-                    header.addEventListener('click', () => {
-                        const gradeName = header.dataset.grade;
-                        expandedGrades[gradeName] = !expandedGrades[gradeName];
-                        renderSidebar();
-                    });
-                });
-                document.querySelectorAll('.volume-header').forEach(header => {
-                    header.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const gradeName = header.dataset.grade;
-                        const volumeName = header.dataset.volume;
-                        const volKey = gradeName + '/' + volumeName;
-                        expandedVolumes[volKey] = !expandedVolumes[volKey];
-                        renderSidebar();
-                    });
-                });
-                document.querySelectorAll('.poem-btn').forEach(btn => {
-                    btn.addEventListener('click', () => selectPoem(parseInt(btn.dataset.id)));
-                });
+                html += `
+                    <div class="grade-group ${isExpanded?'expanded':'collapsed'}" data-grade="${escapeHtml(gradeName)}">
+                        <button class="grade-header" data-grade="${escapeHtml(gradeName)}">
+                            <span class="arrow ${isExpanded?'expanded':''}">▶</span>
+                            <span class="group-name">${escapeHtml(gradeName)}</span>
+                            <span class="group-count">${gradePoems.length}</span>
+                        </button>
+                        <div class="grade-body">${volumesHtml}</div>
+                    </div>`;
             }
+            gradeAccordion.innerHTML = html;
+            // 绑定事件
+            document.querySelectorAll('.grade-header').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const g = e.currentTarget.dataset.grade;
+                    expandedGrades[g] = !expandedGrades[g];
+                    renderSidebar(); saveState();
+                });
+            });
+            document.querySelectorAll('.volume-header').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const g = e.currentTarget.dataset.grade;
+                    const v = e.currentTarget.dataset.volume;
+                    const key = g + '/' + v;
+                    expandedVolumes[key] = !expandedVolumes[key];
+                    renderSidebar(); saveState();
+                });
+            });
+            document.querySelectorAll('.poem-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.dataset.id);
+                    selectPoem(id);
+                });
+            });
+            // 更新搜索
+            totalPoemsCount.textContent = poems.length;
+        }
 
-            function handleSearch(keyword) {
-                const kw = keyword.trim().toLowerCase();
-                if (kw.length === 0) {
-                    searchMode = false;
-                    searchResults.classList.remove('visible');
-                    searchClearBtn.classList.remove('visible');
-                    gradeAccordion.style.display = 'block';
-                    renderSidebar();
-                    return;
-                }
-                searchMode = true;
-                searchClearBtn.classList.add('visible');
-                gradeAccordion.style.display = 'none';
-                const matches = poems.filter(p => p.title.toLowerCase().includes(kw) || p.author.toLowerCase().includes(kw) || p.grade.toLowerCase().includes(kw) || p.volume.toLowerCase().includes(kw) || p.subcategory.toLowerCase().includes(kw));
-                if (matches.length === 0) {
-                    searchResults.innerHTML = '<div class="no-result">未找到匹配的篇目</div>';
-                } else {
-                    let html = '';
-                    matches.forEach(p => {
-                        html += `<button class="poem-btn ${p.id === currentId ? 'active' : ''}" data-id="${p.id}">
-                            <span class="result-title">${highlightText(p.title, kw)}</span>
-                            <span class="result-meta">${highlightText(p.author, kw)} · ${highlightText(p.grade + p.volume + ' ' + p.subcategory, kw)}</span>
-                        </button>`;
-                    });
-                    searchResults.innerHTML = html;
-                }
-                searchResults.classList.add('visible');
-                document.querySelectorAll('.search-results .poem-btn').forEach(btn => {
+        // ===================================================================
+        // 6. 搜索（带防抖）
+        // ===================================================================
+        function handleSearch(keyword) {
+            const kw = keyword.trim().toLowerCase();
+            if (!kw) {
+                searchResults.classList.remove('visible');
+                searchClearBtn.classList.remove('visible');
+                gradeAccordion.style.display = 'block';
+                renderSidebar();
+                return;
+            }
+            searchClearBtn.classList.add('visible');
+            gradeAccordion.style.display = 'none';
+            const matches = poems.filter(p => 
+                p.title.toLowerCase().includes(kw) || 
+                p.author.toLowerCase().includes(kw) ||
+                p.grade.toLowerCase().includes(kw) ||
+                p.volume.toLowerCase().includes(kw) ||
+                p.subcategory.toLowerCase().includes(kw)
+            );
+            if (!matches.length) {
+                searchResults.innerHTML = '<div class="no-result">未找到匹配篇目</div>';
+            } else {
+                let html = '';
+                matches.forEach(p => {
+                    html += `<button class="poem-btn ${p.id===currentId?'active':''}" data-id="${p.id}">
+                        <span class="result-title">${highlightText(p.title, kw)}</span>
+                        <span class="result-meta">${highlightText(p.author, kw)} · ${escapeHtml(p.grade+p.volume+' '+p.subcategory)}</span>
+                    </button>`;
+                });
+                searchResults.innerHTML = html;
+                searchResults.querySelectorAll('.poem-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const id = parseInt(btn.dataset.id);
                         searchInput.value = '';
                         searchClearBtn.classList.remove('visible');
                         searchResults.classList.remove('visible');
                         gradeAccordion.style.display = 'block';
-                        searchMode = false;
                         selectPoem(id);
                     });
                 });
             }
+            searchResults.classList.add('visible');
+        }
 
-            function highlightText(text, keyword) {
-                if (!keyword || !text) return escapeHtml(text);
-                const escaped = escapeHtml(text);
-                const lowerText = text.toLowerCase();
-                const lowerKw = keyword.toLowerCase();
-                let result = '';
-                let lastIndex = 0;
-                let idx = lowerText.indexOf(lowerKw);
-                while (idx !== -1) {
-                    result += escaped.substring(lastIndex, idx);
-                    result += '<mark>' + escaped.substring(idx, idx + keyword.length) + '</mark>';
-                    lastIndex = idx + keyword.length;
-                    idx = lowerText.indexOf(lowerKw, lastIndex);
-                }
-                result += escaped.substring(lastIndex);
-                return result;
+        function highlightText(text, keyword) {
+            if (!text || !keyword) return escapeHtml(text);
+            const lower = text.toLowerCase();
+            const kw = keyword.toLowerCase();
+            let result = '', last=0, idx=lower.indexOf(kw);
+            while (idx !== -1) {
+                result += escapeHtml(text.substring(last, idx));
+                result += '<mark>' + escapeHtml(text.substring(idx, idx+kw.length)) + '</mark>';
+                last = idx + kw.length;
+                idx = lower.indexOf(kw, last);
             }
+            result += escapeHtml(text.substring(last));
+            return result;
+        }
 
-            function selectPoem(id) {
-                currentId = id;
-                const poem = poems.find(p => p.id === id);
-                if (!poem) return;
-                currentTitle.textContent = poem.title;
-                currentMeta.textContent = poem.author + '  |  ' + poem.grade + poem.volume + ' · ' + poem.subcategory;
-                inputText.value = '';
-                resultArea.classList.remove('visible');
-                resultArea.innerHTML = '';
-                scoreBar.style.display = 'none';
-                originalText.classList.remove('visible');
-                originalVisible = false;
-                toggleOriginalBtn.textContent = '📄 原文';
-                renderSidebar();
+        const debouncedSearch = debounce(handleSearch, 300);
+
+        // ===================================================================
+        // 7. 统计 & 错题本
+        // ===================================================================
+        function updateStats() {
+            const attempts = history.filter(h => h.poemId === currentId).length;
+            totalAttempts.textContent = history.length;
+            // 掌握：某篇正确率达到100%至少一次
+            const mastered = new Set();
+            history.forEach(h => {
+                if (h.accuracy === 100) mastered.add(h.poemId);
+            });
+            masteredCount.textContent = mastered.size;
+        }
+
+        function updateWrongDisplay() {
+            const total = Object.keys(wrongChars).length;
+            wrongCountDisplay.textContent = `共 ${total} 个错字`;
+        }
+
+        function reviewWrong() {
+            const keys = Object.keys(wrongChars);
+            if (!keys.length) { alert('🎉 错题本为空，继续加油！'); return; }
+            // 随机挑一个错字，找到包含该字的篇目
+            const key = keys[Math.floor(Math.random() * keys.length)];
+            const target = key.startsWith('【漏】') ? key.replace('【漏】','') : key;
+            // 找包含该字的篇目
+            const found = poems.find(p => p.text.includes(target));
+            if (found) {
+                selectPoem(found.id);
+                alert(`🔁 复习错字：“${target}” （来自“${found.title}”），请重新默写！`);
                 inputText.focus();
-                inputText.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                // 随便选一篇
+                if (poems.length) selectPoem(poems[0].id);
+                alert(`错字“${target}”未找到对应篇目，请手动复习。`);
             }
+        }
 
-            function toggleOriginal() {
-                const poem = poems.find(p => p.id === currentId);
-                if (!poem) return;
-                if (!originalVisible) {
-                    originalContent.textContent = poem.text;
-                    originalText.classList.add('visible');
-                    toggleOriginalBtn.textContent = '🙈 隐藏';
-                    originalVisible = true;
-                } else {
-                    originalText.classList.remove('visible');
-                    toggleOriginalBtn.textContent = '📄 原文';
-                    originalVisible = false;
-                }
-            }
+        function clearWrong() {
+            if (!confirm('确定清空所有错题记录吗？')) return;
+            wrongChars = {};
+            updateWrongDisplay();
+            saveState();
+            alert('错题本已清空！');
+        }
 
-            function diffChars(orig, user) {
-                const m = orig.length;
-                const n = user.length;
-                const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-                for (let i = 0; i <= m; i++) dp[i][0] = i;
-                for (let j = 0; j <= n; j++) dp[0][j] = j;
-                for (let i = 1; i <= m; i++) {
-                    for (let j = 1; j <= n; j++) {
-                        const cost = orig[i - 1] === user[j - 1] ? 0 : 1;
-                        dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
-                    }
-                }
-                const ops = [];
-                let i = m, j = n;
-                while (i > 0 || j > 0) {
-                    if (i > 0 && j > 0 && orig[i - 1] === user[j - 1]) {
-                        ops.push({ type: 'equal', char: orig[i - 1] });
-                        i--; j--;
-                    } else if (i > 0 && j > 0 && dp[i][j] === dp[i - 1][j - 1] + 1) {
-                        ops.push({ type: 'replace', origChar: orig[i - 1], userChar: user[j - 1] });
-                        i--; j--;
-                    } else if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
-                        ops.push({ type: 'delete', char: orig[i - 1] });
-                        i--;
-                    } else {
-                        ops.push({ type: 'insert', char: user[j - 1] });
-                        j--;
-                    }
-                }
-                ops.reverse();
-                let correctCount = 0, replaceCount = 0, deleteCount = 0, insertCount = 0;
-                ops.forEach(op => {
-                    if (op.type === 'equal') correctCount++;
-                    else if (op.type === 'replace') replaceCount++;
-                    else if (op.type === 'delete') deleteCount++;
-                    else if (op.type === 'insert') insertCount++;
-                });
-                const totalChars = m;
-                const accuracy = totalChars > 0 ? Math.round((correctCount / totalChars) * 1000) / 10 : 0;
-                return { ops, correctCount, totalChars, accuracy, replaceCount, deleteCount, insertCount };
-            }
+        // ===================================================================
+        // 8. 考试模式
+        // ===================================================================
+        function startExam() {
+            if (poems.length < 5) { alert('题库少于5篇，无法考试'); return; }
+            const shuffled = [...poems].sort(() => Math.random() - 0.5);
+            examQueue = shuffled.slice(0, 5);
+            examResults = [];
+            examMode = true;
+            alert(`📝 考试模式：共 ${examQueue.length} 篇，请依次默写！`);
+            selectPoem(examQueue[0].id);
+            examModeBtn.textContent = `📝 考试中 (${examResults.length+1}/${examQueue.length})`;
+            // 监听检查完成
+        }
 
-            function checkDictation() {
-                const poem = poems.find(p => p.id === currentId);
-                if (!poem) return;
-                const userInput = inputText.value;
-                const original = poem.text;
-                const userTrimmed = userInput.replace(/\s+$/, '');
-                const origTrimmed = original.replace(/\s+$/, '');
-                if (userTrimmed.length === 0) {
-                    alert('请先输入默写内容！');
-                    return;
-                }
-                const diff = diffChars(Array.from(origTrimmed), Array.from(userTrimmed));
-                displayResult(diff);
-            }
-
-            function displayResult(diff) {
-                const { ops, correctCount, totalChars, accuracy, replaceCount, deleteCount, insertCount } = diff;
-                let html = '';
-                for (const op of ops) {
-                    switch (op.type) {
-                        case 'equal':
-                            if (op.char === '\n') html += '<br>';
-                            else html += `<span class="char-correct">${escapeHtml(op.char)}</span>`;
-                            break;
-                        case 'replace':
-                            if (op.origChar === '\n') html += '<br>';
-                            else html += `<span class="char-wrong" title="原文：${escapeHtml(op.origChar)} → 你写：${escapeHtml(op.userChar)}">${escapeHtml(op.userChar)}</span>`;
-                            break;
-                        case 'delete':
-                            if (op.char === '\n') html += '<br>';
-                            else html += `<span class="char-missing" title="遗漏了：${escapeHtml(op.char)}">${escapeHtml(op.char)}</span>`;
-                            break;
-                        case 'insert':
-                            if (op.char === '\n') html += '<br>';
-                            else html += `<span class="char-extra" title="多写了：${escapeHtml(op.char)}">${escapeHtml(op.char)}</span>`;
-                            break;
-                    }
-                }
-                resultArea.innerHTML = html;
-                resultArea.classList.add('visible');
-                resultArea.scrollTop = 0;
-                scoreBar.style.display = 'flex';
-                scoreText.textContent = `正确率：${accuracy}%`;
-                const totalErrors = replaceCount + deleteCount + insertCount;
-                scoreDetail.textContent = `正确 ${correctCount} 字 / 共 ${totalChars} 字；替换 ${replaceCount} 处，缺失 ${deleteCount} 处，多余 ${insertCount} 处`;
-                progressFill.style.width = `${accuracy}%`;
-                resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-
-            function escapeHtml(str) {
-                const div = document.createElement('div');
-                div.textContent = str;
-                return div.innerHTML;
-            }
-
-            // ===================== 管理模态框 =====================
-            function openManage() {
-                manageModal.classList.add('active');
-                renderManageList();
-            }
-
-            function closeManage() {
-                collectManageData();
-                savePoemsToStorage();
-                manageModal.classList.remove('active');
-                renderSidebar();
-                if (currentId !== null && poems.find(p => p.id === currentId)) {
-                    selectPoem(currentId);
-                } else if (poems.length > 0) {
-                    selectPoem(poems[0].id);
-                } else {
-                    currentTitle.textContent = '无篇目';
-                    currentMeta.textContent = '';
-                    inputText.value = '';
-                    resultArea.classList.remove('visible');
-                    resultArea.innerHTML = '';
-                    scoreBar.style.display = 'none';
-                    originalText.classList.remove('visible');
-                    originalVisible = false;
-                    toggleOriginalBtn.textContent = '📄 原文';
-                    renderSidebar();
-                }
-            }
-
-            function saveManage() {
-                collectManageData();
-                savePoemsToStorage();
-                alert('保存成功！数据已保存到浏览器。');
-                renderSidebar();
-            }
-
-            function renderManageList() {
-                if (poems.length === 0) {
-                    poemEditList.innerHTML = '<div class="empty-hint">题库为空，点击"新增"添加。</div>';
-                    return;
-                }
-                let html = '';
-                poems.forEach(poem => {
-                    const isCustomSubcat = !PRESET_SUBCATEGORIES.includes(poem.subcategory);
-                    html += `
-                        <div class="poem-edit-item" data-id="${poem.id}">
-                            <div class="field-row">
-                                <label>年级</label>
-                                <select class="edit-grade">
-                                    ${PRESET_GRADES.map(g => `<option value="${g}" ${poem.grade === g ? 'selected' : ''}>${g}</option>`).join('')}
-                                </select>
-                                <label>册次</label>
-                                <select class="edit-volume">
-                                    ${PRESET_VOLUMES.map(v => `<option value="${v}" ${poem.volume === v ? 'selected' : ''}>${v}</option>`).join('')}
-                                </select>
-                                <label>分类</label>
-                                <select class="edit-subcategory">
-                                    ${PRESET_SUBCATEGORIES.map(s => `<option value="${s}" ${poem.subcategory === s ? 'selected' : ''}>${s}</option>`).join('')}
-                                    <option value="__custom__" ${isCustomSubcat ? 'selected' : ''}>自定义...</option>
-                                </select>
-                                <input type="text" class="custom-subcat-input ${isCustomSubcat ? 'visible' : ''}" placeholder="输入自定义分类" value="${isCustomSubcat ? escapeHtml(poem.subcategory) : ''}">
-                            </div>
-                            <div class="field-row">
-                                <label>标题</label>
-                                <input type="text" class="edit-title" value="${escapeHtml(poem.title)}" placeholder="标题">
-                            </div>
-                            <div class="field-row">
-                                <label>作者</label>
-                                <input type="text" class="edit-author" value="${escapeHtml(poem.author)}" placeholder="作者/出处">
-                            </div>
-                            <div class="field-row">
-                                <label>正文</label>
-                                <textarea class="edit-text" rows="4">${escapeHtml(poem.text)}</textarea>
-                            </div>
-                            <div style="text-align:right;">
-                                <button class="delete-btn" data-id="${poem.id}">🗑️ 删除</button>
-                            </div>
-                        </div>`;
-                });
-                poemEditList.innerHTML = html;
-
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const id = parseInt(e.target.dataset.id);
-                        deletePoem(id);
-                    });
-                });
-                document.querySelectorAll('.edit-subcategory').forEach(select => {
-                    select.addEventListener('change', (e) => {
-                        const item = e.target.closest('.poem-edit-item');
-                        const customInput = item.querySelector('.custom-subcat-input');
-                        if (e.target.value === '__custom__') {
-                            customInput.classList.add('visible');
-                            customInput.focus();
-                        } else {
-                            customInput.classList.remove('visible');
-                        }
-                    });
-                });
-            }
-
-            function deletePoem(id) {
-                if (!confirm('确定要删除这首诗词吗？')) return;
-                poems = poems.filter(p => p.id !== id);
-                if (currentId === id) {
-                    if (poems.length > 0) currentId = poems[0].id;
-                    else currentId = null;
-                }
-                savePoemsToStorage();
-                renderManageList();
-                renderSidebar();
-            }
-
-            function addPoem() {
-                const newPoem = {
-                    id: nextId++,
-                    title: '',
-                    author: '',
-                    grade: PRESET_GRADES[0] || '七年级',
-                    volume: PRESET_VOLUMES[0] || '上册',
-                    subcategory: PRESET_SUBCATEGORIES[0] || '课内古诗词',
-                    text: ''
-                };
-                poems.push(newPoem);
-                renderManageList();
-                const items = document.querySelectorAll('.poem-edit-item');
-                if (items.length > 0) items[items.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-
-            function collectManageData() {
-                const items = document.querySelectorAll('.poem-edit-item');
-                const newPoems = [];
-                items.forEach(item => {
-                    const id = parseInt(item.dataset.id);
-                    const grade = item.querySelector('.edit-grade').value.trim() || '七年级';
-                    const volume = item.querySelector('.edit-volume').value.trim() || '上册';
-                    const subcatSelect = item.querySelector('.edit-subcategory');
-                    let subcategory = subcatSelect.value;
-                    if (subcategory === '__custom__') {
-                        const customInput = item.querySelector('.custom-subcat-input');
-                        subcategory = customInput.value.trim() || '自定义';
-                    }
-                    const title = item.querySelector('.edit-title').value.trim();
-                    const author = item.querySelector('.edit-author').value.trim();
-                    const text = item.querySelector('.edit-text').value;
-                    if (title || text) {
-                        newPoems.push({ id, title: title || '无标题', author: author || '未知', grade, volume, subcategory, text });
-                    }
-                });
-                poems = newPoems;
-                poems.forEach((p, index) => p.id = index + 1);
-                nextId = poems.length + 1;
-                if (poems.length > 0 && !poems.find(p => p.id === currentId)) currentId = poems[0].id;
-                if (poems.length === 0) currentId = null;
-            }
-
-            function exportData() {
-                collectManageData();
-                savePoemsToStorage();
-                const dataStr = JSON.stringify(poems, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = '古诗文题库_' + new Date().toISOString().slice(0, 10) + '.json';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                alert('题库导出成功！');
-            }
-
-            function importData(file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const imported = JSON.parse(e.target.result);
-                        if (!Array.isArray(imported)) throw new Error('格式不正确');
-                        poems = imported.map((item, index) => {
-                            if (item.grade && item.volume && item.subcategory) {
-                                return { ...item, id: index + 1 };
-                            } else if (item.category) {
-                                return { id: index + 1, title: item.title || '无标题', author: item.author || '未知', grade: '七年级', volume: '上册', subcategory: item.category, text: item.text || '' };
-                            } else {
-                                throw new Error('缺少必要字段');
-                            }
-                        });
-                        nextId = poems.length + 1;
-                        if (poems.length > 0) currentId = poems[0].id;
-                        else currentId = null;
-                        expandedGrades = {};
-                        expandedVolumes = {};
-                        savePoemsToStorage();
-                        renderManageList();
-                        renderSidebar();
-                        alert('题库导入成功！');
-                    } catch (err) {
-                        alert('导入失败：' + err.message);
-                    }
-                };
-                reader.readAsText(file);
-            }
-
-            function restoreDefault() {
-                if (!confirm('确定要恢复默认题库吗？所有自定义修改将丢失。')) return;
-                poems = JSON.parse(JSON.stringify(initialPoems));
-                nextId = poems.length + 1;
-                currentId = poems.length > 0 ? poems[0].id : null;
-                expandedGrades = {};
-                expandedVolumes = {};
-                localStorage.removeItem('poemsData');
-                renderManageList();
-                renderSidebar();
-                alert('已恢复默认题库。');
-            }
-
-            // ===================== 事件绑定 =====================
-            openManageBtn.addEventListener('click', openManage);
-            closeManageBtn.addEventListener('click', closeManage);
-            saveManageBtn.addEventListener('click', saveManage);
-            addPoemBtn.addEventListener('click', addPoem);
-            exportBtn.addEventListener('click', exportData);
-            importBtn.addEventListener('click', () => importFileInput.click());
-            importFileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    importData(e.target.files[0]);
-                    e.target.value = '';
-                }
+        function handleExamCheck() {
+            if (!examMode || !examQueue.length) return;
+            const poem = poems.find(p => p.id === currentId);
+            if (!poem) return;
+            // 检查当前篇目
+            const user = inputText.value;
+            if (user.trim().length === 0) { alert('请先输入默写内容！'); return; }
+            const orig = poem.text;
+            const origArr = Array.from(orig);
+            const userArr = Array.from(user);
+            const result = diffChars(origArr, userArr);
+            examResults.push({ title: poem.title, accuracy: result.accuracy });
+            // 显示结果但不保存历史? 保持保存
+            displayResult(result);
+            // 保存历史
+            history.push({
+                poemId: poem.id,
+                timestamp: Date.now(),
+                accuracy: result.accuracy,
+                replaces: result.replaces,
+                deletes: result.deletes,
+                inserts: result.inserts,
+                totalChars: result.total
             });
-            restoreDefaultBtn.addEventListener('click', restoreDefault);
-            manageModal.addEventListener('click', (e) => {
-                if (e.target === manageModal) closeManage();
-            });
+            saveState();
+            updateStats();
 
-            checkBtn.addEventListener('click', checkDictation);
-            resetBtn.addEventListener('click', () => {
-                inputText.value = '';
-                resultArea.classList.remove('visible');
-                resultArea.innerHTML = '';
-                scoreBar.style.display = 'none';
+            // 下一题
+            const idx = examResults.length;
+            if (idx < examQueue.length) {
+                alert(`✅ 第 ${idx} 篇完成！正确率 ${result.accuracy}%。点击确定继续下一篇。`);
+                selectPoem(examQueue[idx].id);
+                examModeBtn.textContent = `📝 考试中 (${idx+1}/${examQueue.length})`;
+            } else {
+                // 考试结束
+                examMode = false;
+                const avg = examResults.reduce((s,r) => s + r.accuracy, 0) / examResults.length;
+                let summary = `📊 考试结束！\n平均正确率：${avg.toFixed(1)}%\n\n`;
+                examResults.forEach((r,i) => {
+                    summary += `${i+1}. ${r.title} : ${r.accuracy}%\n`;
+                });
+                alert(summary);
+                examModeBtn.textContent = '📝 考试模式(5篇)';
+                examQueue = [];
+                examResults = [];
+                if (poems.length) selectPoem(poems[0].id);
+            }
+        }
+
+        // ===================================================================
+        // 9. 随机 & 语音
+        // ===================================================================
+        function randomPoem() {
+            if (!poems.length) return;
+            const idx = Math.floor(Math.random() * poems.length);
+            selectPoem(poems[idx].id);
+        }
+
+        function speakPoem() {
+            const poem = poems.find(p => p.id === currentId);
+            if (!poem) return;
+            if (isSpeaking) { window.speechSynthesis?.cancel(); isSpeaking = false; return; }
+            if (!window.speechSynthesis) { alert('浏览器不支持语音朗读'); return; }
+            const utter = new SpeechSynthesisUtterance(poem.text);
+            utter.lang = 'zh-CN';
+            utter.rate = 0.9;
+            utter.pitch = 1;
+            isSpeaking = true;
+            speakBtn.textContent = '🔊 停止';
+            utter.onend = () => { isSpeaking = false; speakBtn.textContent = '🔊 朗读'; };
+            utter.onerror = () => { isSpeaking = false; speakBtn.textContent = '🔊 朗读'; };
+            window.speechSynthesis.speak(utter);
+        }
+
+        // ===================================================================
+        // 10. 题库管理
+        // ===================================================================
+        function openManage() { manageModal.classList.add('active'); renderManageList(); }
+        function closeManage() { collectManageData(); manageModal.classList.remove('active'); renderSidebar(); updateStats(); saveState(); }
+
+        function renderManageList() {
+            if (!poems.length) { poemEditList.innerHTML = '<div class="empty-hint">题库为空，点击"新增"添加。</div>'; return; }
+            let html = '';
+            poems.forEach(p => {
+                const isCustom = !PRESET_SUBCATEGORIES.includes(p.subcategory);
+                html += `
+                    <div class="poem-edit-item" data-id="${p.id}">
+                        <div class="field-row">
+                            <label>年级</label>
+                            <select class="edit-grade">${PRESET_GRADES.map(g => `<option value="${g}" ${p.grade===g?'selected':''}>${g}</option>`).join('')}</select>
+                            <label>册次</label>
+                            <select class="edit-volume">${PRESET_VOLUMES.map(v => `<option value="${v}" ${p.volume===v?'selected':''}>${v}</option>`).join('')}</select>
+                            <label>分类</label>
+                            <select class="edit-subcategory">
+                                ${PRESET_SUBCATEGORIES.map(s => `<option value="${s}" ${p.subcategory===s?'selected':''}>${s}</option>`).join('')}
+                                <option value="__custom__" ${isCustom?'selected':''}>自定义...</option>
+                            </select>
+                            <input type="text" class="custom-subcat-input ${isCustom?'visible':''}" placeholder="自定义分类" value="${isCustom?escapeHtml(p.subcategory):''}">
+                        </div>
+                        <div class="field-row"><label>标题</label><input type="text" class="edit-title" value="${escapeHtml(p.title)}"></div>
+                        <div class="field-row"><label>作者</label><input type="text" class="edit-author" value="${escapeHtml(p.author)}"></div>
+                        <div class="field-row"><label>正文</label><textarea class="edit-text" rows="4">${escapeHtml(p.text)}</textarea></div>
+                        <div style="text-align:right;"><button class="delete-btn" data-id="${p.id}">🗑️ 删除</button></div>
+                    </div>`;
             });
-            clearBtn.addEventListener('click', () => {
-                inputText.value = '';
-                resultArea.classList.remove('visible');
-                resultArea.innerHTML = '';
-                scoreBar.style.display = 'none';
+            poemEditList.innerHTML = html;
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.target.dataset.id);
+                    if (!confirm('删除此篇？')) return;
+                    poems = poems.filter(p => p.id !== id);
+                    if (currentId === id) currentId = poems.length ? poems[0].id : null;
+                    renderManageList(); renderSidebar(); saveState();
+                });
             });
-            toggleOriginalBtn.addEventListener('click', toggleOriginal);
-            inputText.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                    e.preventDefault();
-                    checkDictation();
+            document.querySelectorAll('.edit-subcategory').forEach(sel => {
+                sel.addEventListener('change', (e) => {
+                    const item = e.target.closest('.poem-edit-item');
+                    const custom = item.querySelector('.custom-subcat-input');
+                    if (e.target.value === '__custom__') custom.classList.add('visible');
+                    else custom.classList.remove('visible');
+                });
+            });
+        }
+
+        function collectManageData() {
+            const items = document.querySelectorAll('.poem-edit-item');
+            const newList = [];
+            items.forEach(item => {
+                const id = parseInt(item.dataset.id);
+                const grade = item.querySelector('.edit-grade').value.trim() || '七年级';
+                const volume = item.querySelector('.edit-volume').value.trim() || '上册';
+                let subcat = item.querySelector('.edit-subcategory').value;
+                if (subcat === '__custom__') {
+                    subcat = item.querySelector('.custom-subcat-input').value.trim() || '自定义';
                 }
+                const title = item.querySelector('.edit-title').value.trim() || '无标题';
+                const author = item.querySelector('.edit-author').value.trim() || '未知';
+                const text = item.querySelector('.edit-text').value;
+                newList.push({ id, title, author, grade, volume, subcategory: subcat, text });
             });
+            poems = newList;
+            poems.forEach((p, idx) => p.id = idx + 1);
+            nextId = poems.length + 1;
+            if (!poems.find(p => p.id === currentId)) currentId = poems.length ? poems[0].id : null;
+        }
 
-            searchInput.addEventListener('input', (e) => handleSearch(e.target.value));
+        function addPoem() {
+            const newP = { id: nextId++, title: '新篇目', author: '未知', grade: '七年级', volume: '上册', subcategory: '其他', text: '请输入正文...' };
+            poems.push(newP);
+            renderManageList();
+            saveState();
+        }
+
+        function exportData() {
+            collectManageData();
+            const blob = new Blob([JSON.stringify(poems, null, 2)], { type:'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `古诗文题库_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            alert('导出成功！');
+        }
+
+        function importData(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!Array.isArray(data)) throw new Error('格式错误');
+                    poems = data.map((p, idx) => ({ ...p, id: idx+1 }));
+                    nextId = poems.length + 1;
+                    currentId = poems.length ? poems[0].id : null;
+                    renderManageList(); renderSidebar(); saveState();
+                    alert('导入成功！');
+                } catch(err) { alert('导入失败: '+err.message); }
+            };
+            reader.readAsText(file);
+        }
+
+        function restoreDefault() {
+            if (!confirm('恢复默认将丢失所有自定义修改！')) return;
+            poems = JSON.parse(JSON.stringify(INITIAL_POEMS));
+            nextId = poems.length + 1;
+            currentId = poems.length ? poems[0].id : null;
+            expandedGrades = {}; expandedVolumes = {};
+            renderManageList(); renderSidebar(); saveState();
+            alert('已恢复默认题库。');
+        }
+
+        // ===================================================================
+        // 11. 草稿自动保存
+        // ===================================================================
+        function saveDraft() {
+            if (currentId) {
+                const val = inputText.value;
+                if (val.trim()) draft[currentId] = val;
+                else delete draft[currentId];
+                saveState();
+            }
+        }
+        const debouncedDraft = debounce(saveDraft, 500);
+
+        // ===================================================================
+        // 12. 事件绑定
+        // ===================================================================
+        function init() {
+            loadState();
+
+            // 主题
+            themeToggleBtn.addEventListener('click', toggleTheme);
+            // 搜索
+            searchInput.addEventListener('input', (e) => debouncedSearch(e.target.value));
             searchClearBtn.addEventListener('click', () => {
                 searchInput.value = '';
                 searchClearBtn.classList.remove('visible');
                 searchResults.classList.remove('visible');
                 gradeAccordion.style.display = 'block';
-                searchMode = false;
                 renderSidebar();
-                inputText.focus();
+            });
+            // 按钮
+            checkBtn.addEventListener('click', () => {
+                if (examMode) handleExamCheck();
+                else checkDictation();
+            });
+            resetBtn.addEventListener('click', resetPoem);
+            clearBtn.addEventListener('click', clearAll);
+            toggleOriginalBtn.addEventListener('click', toggleOriginal);
+            toggleViewBtn.addEventListener('click', toggleCompare);
+            randomBtn.addEventListener('click', randomPoem);
+            speakBtn.addEventListener('click', speakPoem);
+            examModeBtn.addEventListener('click', () => {
+                if (examMode) {
+                    if (!confirm('退出当前考试？')) return;
+                    examMode = false; examQueue = []; examResults = [];
+                    examModeBtn.textContent = '📝 考试模式(5篇)';
+                    if (poems.length) selectPoem(poems[0].id);
+                } else {
+                    startExam();
+                }
+            });
+            reviewWrongBtn.addEventListener('click', reviewWrong);
+            clearWrongBtn.addEventListener('click', clearWrong);
+
+            // 快捷键 Ctrl+Enter
+            inputText.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    checkBtn.click();
+                }
+            });
+            // 草稿自动保存
+            inputText.addEventListener('input', debouncedDraft);
+
+            // 管理
+            document.getElementById('openManageBtn').addEventListener('click', openManage);
+            document.getElementById('closeManageBtn').addEventListener('click', closeManage);
+            document.getElementById('saveManageBtn').addEventListener('click', () => { collectManageData(); renderSidebar(); updateStats(); saveState(); alert('保存成功！'); });
+            document.getElementById('addPoemBtn').addEventListener('click', addPoem);
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFileInput').click());
+            document.getElementById('importFileInput').addEventListener('change', (e) => {
+                if (e.target.files.length) { importData(e.target.files[0]); e.target.value=''; }
+            });
+            document.getElementById('restoreDefaultBtn').addEventListener('click', restoreDefault);
+            manageModal.addEventListener('click', (e) => { if (e.target === manageModal) closeManage(); });
+
+            // 系统主题变化监听
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                if (theme === 'system') applyTheme('system');
             });
 
-            // ===================== 初始化 =====================
-            function init() {
-                // 尝试从本地存储加载题库
-                const storedPoems = loadPoemsFromStorage();
-                if (storedPoems) {
-                    poems = storedPoems;
-                    nextId = poems.length + 1;
-                    currentId = poems[0]?.id || null;
-                }
-                renderSidebar();
-                selectPoem(currentId);
-            }
+            // 窗口关闭前保存
+            window.addEventListener('beforeunload', () => { saveDraft(); saveState(); });
+        }
 
-            init();
-        })();
-    </script>
+        // 启动
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+        else init();
+
+    })();
+</script>
 </body>
 </html>
