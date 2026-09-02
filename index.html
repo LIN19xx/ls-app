@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
     <title>古诗文默写 · 智能学习系统</title>
-    <!-- DOMPurify for XSS protection -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" defer></script>
     <style>
-        /* ===================== CSS Variables & Themes ===================== */
+        /* ========== 主题变量 ========== */
         :root {
             --font-base: 17px;
             --font-small: 15px;
@@ -15,10 +14,9 @@
             --font-xl: 28px;
             --radius: 16px;
             --radius-sm: 10px;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
             --touch-target: 48px;
             --transition: 0.25s ease;
-            
             --bg: #f5f0e8;
             --card: #ffffff;
             --primary: #8b5e3c;
@@ -35,9 +33,8 @@
             --modal-overlay: rgba(0,0,0,0.55);
             --input-bg: #fdfcf9;
             --hover-bg: #f5f0ea;
-            --shadow-strong: 0 16px 50px rgba(0, 0, 0, 0.25);
+            --shadow-strong: 0 16px 50px rgba(0,0,0,0.25);
         }
-
         [data-theme="dark"] {
             --bg: #1a1816;
             --card: #272420;
@@ -55,486 +52,462 @@
             --modal-overlay: rgba(0,0,0,0.75);
             --input-bg: #2f2b26;
             --hover-bg: #3a352e;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            --shadow-strong: 0 16px 50px rgba(0, 0, 0, 0.6);
+            --shadow: 0 4px 20px rgba(0,0,0,0.4);
+            --shadow-strong: 0 16px 50px rgba(0,0,0,0.6);
         }
-
-        /* ===================== Reset & Base ===================== */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: "Georgia", "Noto Serif SC", "STSong", "SimSun", serif;
+            font-family: "Georgia","Noto Serif SC","STSong","SimSun",serif;
             background: var(--bg);
             color: var(--text);
-            min-height: 100vh;
-            padding: 20px 24px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            font-size: var(--font-base);
+            min-height:100vh;
+            padding:20px 24px;
+            display:flex;
+            justify-content:center;
+            align-items:flex-start;
+            font-size:var(--font-base);
             transition: background var(--transition), color var(--transition);
-            -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color:transparent;
         }
-        .app-container { width: 100%; max-width: 1440px; display: flex; flex-direction: column; gap: 24px; }
+        .app-container { width:100%; max-width:1440px; display:flex; flex-direction:column; gap:24px; }
 
-        /* ===================== Header ===================== */
+        /* ========== 头部 ========== */
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            padding: 16px 0 8px;
-            border-bottom: 2px solid var(--border);
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            flex-wrap:wrap;
+            gap:12px;
+            padding:16px 0 8px;
+            border-bottom:2px solid var(--border);
         }
-        header h1 {
-            font-size: var(--font-xl);
-            color: var(--primary);
-            letter-spacing: 2px;
-            font-weight: 700;
-        }
-        header .header-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
+        header h1 { font-size:var(--font-xl); color:var(--primary); letter-spacing:2px; font-weight:700; }
+        .header-actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
         .btn-icon {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 30px;
-            padding: 8px 18px;
-            font-size: var(--font-base);
-            cursor: pointer;
-            transition: all var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--text);
-            min-height: var(--touch-target);
-            font-family: inherit;
-            box-shadow: var(--shadow);
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:30px;
+            padding:8px 18px;
+            font-size:var(--font-base);
+            cursor:pointer;
+            transition:all var(--transition);
+            display:flex;
+            align-items:center;
+            gap:6px;
+            color:var(--text);
+            min-height:var(--touch-target);
+            font-family:inherit;
+            box-shadow:var(--shadow);
         }
-        .btn-icon:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-        .btn-icon:active { transform: scale(0.96); }
+        .btn-icon:hover { background:var(--primary); color:#fff; border-color:var(--primary); transform:translateY(-2px); }
+        .btn-icon:active { transform:scale(0.96); }
         .btn-manage {
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: var(--font-base);
-            font-family: inherit;
-            transition: all var(--transition);
-            box-shadow: 0 2px 12px rgba(139, 94, 60, 0.35);
-            min-height: var(--touch-target);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background:var(--primary);
+            color:#fff;
+            border:none;
+            padding:12px 28px;
+            border-radius:30px;
+            cursor:pointer;
+            font-size:var(--font-base);
+            font-family:inherit;
+            transition:all var(--transition);
+            box-shadow:0 2px 12px rgba(139,94,60,0.35);
+            min-height:var(--touch-target);
+            display:flex;
+            align-items:center;
+            gap:8px;
         }
-        .btn-manage:hover {
-            background: var(--primary-light);
-            transform: translateY(-2px);
-        }
+        .btn-manage:hover { background:var(--primary-light); transform:translateY(-2px); }
 
-        /* ===================== Main Layout ===================== */
-        .main-layout { display: flex; gap: 24px; align-items: flex-start; }
+        /* ========== 主布局 ========== */
+        .main-layout { display:flex; gap:24px; align-items:flex-start; }
         .sidebar {
-            flex: 0 0 340px;
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 20px 16px;
-            max-height: 82vh;
-            overflow-y: auto;
-            position: sticky;
-            top: 24px;
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+            flex:0 0 340px;
+            background:var(--card);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            padding:20px 16px;
+            max-height:82vh;
+            overflow-y:auto;
+            position:sticky;
+            top:24px;
+            border:1px solid var(--border);
+            display:flex;
+            flex-direction:column;
+            gap:16px;
             transition: background var(--transition), border var(--transition);
         }
-        .sidebar h2 {
-            font-size: 1.2rem;
-            color: var(--primary);
-            text-align: center;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 12px;
-        }
-        .search-box { position: relative; flex-shrink: 0; }
+        .sidebar h2 { font-size:1.2rem; color:var(--primary); text-align:center; border-bottom:2px solid var(--primary); padding-bottom:12px; }
+        .search-box { position:relative; flex-shrink:0; }
         .search-box input {
-            width: 100%;
-            padding: 14px 44px 14px 18px;
-            border: 2px solid var(--border);
-            border-radius: 30px;
-            font-size: var(--font-base);
-            font-family: inherit;
-            background: var(--input-bg);
-            color: var(--text);
-            transition: all var(--transition);
-            outline: none;
-            min-height: var(--touch-target);
+            width:100%;
+            padding:14px 44px 14px 18px;
+            border:2px solid var(--border);
+            border-radius:30px;
+            font-size:var(--font-base);
+            font-family:inherit;
+            background:var(--input-bg);
+            color:var(--text);
+            transition:all var(--transition);
+            outline:none;
+            min-height:var(--touch-target);
         }
-        .search-box input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(139, 94, 60, 0.15);
-        }
+        .search-box input:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(139,94,60,0.15); }
         .search-clear {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            font-size: 1.6rem;
-            cursor: pointer;
-            color: var(--text-light);
-            padding: 8px 12px;
-            border-radius: 50%;
-            display: none;
-            min-width: 44px;
-            min-height: 44px;
-            align-items: center;
-            justify-content: center;
+            position:absolute;
+            right:8px;
+            top:50%;
+            transform:translateY(-50%);
+            background:none;
+            border:none;
+            font-size:1.6rem;
+            cursor:pointer;
+            color:var(--text-light);
+            padding:8px 12px;
+            border-radius:50%;
+            display:none;
+            min-width:44px;
+            min-height:44px;
+            align-items:center;
+            justify-content:center;
         }
-        .search-clear.visible { display: flex; }
-        .search-clear:hover { background: var(--wrong-bg); color: var(--wrong); }
+        .search-clear.visible { display:flex; }
+        .search-clear:hover { background:var(--wrong-bg); color:var(--wrong); }
 
-        .search-results { display: none; flex-direction: column; gap: 6px; }
-        .search-results.visible { display: flex; }
-        .search-results .no-result { text-align: center; color: var(--text-light); padding: 24px 12px; font-style: italic; }
+        .search-results { display:none; flex-direction:column; gap:6px; }
+        .search-results.visible { display:flex; }
+        .search-results .no-result { text-align:center; color:var(--text-light); padding:24px 12px; font-style:italic; }
         .search-results .poem-btn {
-            width: 100%;
-            padding: 14px 16px;
-            border: none;
-            background: transparent;
-            color: var(--text);
-            font-size: var(--font-base);
-            font-family: inherit;
-            cursor: pointer;
-            border-radius: var(--radius-sm);
-            text-align: left;
-            transition: all var(--transition);
-            border: 1px solid transparent;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-height: var(--touch-target);
+            width:100%;
+            padding:14px 16px;
+            border:none;
+            background:transparent;
+            color:var(--text);
+            font-size:var(--font-base);
+            font-family:inherit;
+            cursor:pointer;
+            border-radius:var(--radius-sm);
+            text-align:left;
+            transition:all var(--transition);
+            border:1px solid transparent;
+            display:flex;
+            flex-direction:column;
+            gap:4px;
+            min-height:var(--touch-target);
         }
-        .search-results .poem-btn:hover { background: var(--hover-bg); border-color: var(--border); }
-        .search-results .poem-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .search-results .poem-btn mark { background: #fff3cd; color: #8b5e00; padding: 2px 4px; border-radius: 4px; }
-        .search-results .poem-btn.active mark { background: rgba(255,255,255,0.4); color: #fff; }
+        .search-results .poem-btn:hover { background:var(--hover-bg); border-color:var(--border); }
+        .search-results .poem-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+        .search-results .poem-btn mark { background:#fff3cd; color:#8b5e00; padding:2px 4px; border-radius:4px; }
+        .search-results .poem-btn.active mark { background:rgba(255,255,255,0.4); color:#fff; }
 
-        /* Accordion */
+        /* 手风琴 */
         .grade-group {
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            margin-bottom: 10px;
-            transition: border var(--transition);
+            border:1px solid var(--border);
+            border-radius:var(--radius-sm);
+            overflow:hidden;
+            margin-bottom:10px;
+            transition:border var(--transition);
         }
-        .grade-group.collapsed > .grade-body { display: none; }
+        .grade-group.collapsed > .grade-body { display:none; }
         .grade-header {
-            padding: 14px 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--input-bg);
-            transition: all var(--transition);
-            user-select: none;
-            border: none;
-            width: 100%;
-            font-family: inherit;
-            text-align: left;
-            font-weight: 700;
-            min-height: var(--touch-target);
-            font-size: var(--font-base);
-            color: var(--text);
+            padding:14px 16px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            gap:10px;
+            background:var(--input-bg);
+            transition:all var(--transition);
+            user-select:none;
+            border:none;
+            width:100%;
+            font-family:inherit;
+            text-align:left;
+            font-weight:700;
+            min-height:var(--touch-target);
+            font-size:var(--font-base);
+            color:var(--text);
         }
-        .grade-header:hover { background: var(--hover-bg); }
-        .grade-header .arrow { font-size: 0.85rem; transition: transform var(--transition); min-width: 16px; color: var(--text-light); display: inline-block; }
-        .grade-header .arrow.expanded { transform: rotate(90deg); }
+        .grade-header:hover { background:var(--hover-bg); }
+        .grade-header .arrow { font-size:0.85rem; transition:transform var(--transition); min-width:16px; color:var(--text-light); display:inline-block; }
+        .grade-header .arrow.expanded { transform:rotate(90deg); }
         .grade-header .group-count {
-            font-size: var(--font-small);
-            color: var(--text-light);
-            background: var(--card);
-            padding: 4px 12px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            min-width: 32px;
-            text-align: center;
+            font-size:var(--font-small);
+            color:var(--text-light);
+            background:var(--card);
+            padding:4px 12px;
+            border-radius:16px;
+            border:1px solid var(--border);
+            min-width:32px;
+            text-align:center;
         }
-        .grade-body { padding: 6px; background: var(--card); }
+        .grade-body { padding:6px; background:var(--card); }
         .volume-group {
-            border-left: 3px solid var(--border);
-            margin-left: 16px;
-            padding-left: 10px;
-            margin-bottom: 6px;
+            border-left:3px solid var(--border);
+            margin-left:16px;
+            padding-left:10px;
+            margin-bottom:6px;
         }
-        .volume-group.collapsed > .volume-body { display: none; }
+        .volume-group.collapsed > .volume-body { display:none; }
         .volume-header {
-            padding: 10px 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: transparent;
-            border: none;
-            width: 100%;
-            font-family: inherit;
-            text-align: left;
-            min-height: 44px;
-            color: var(--text);
-            transition: all var(--transition);
+            padding:10px 12px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            gap:8px;
+            background:transparent;
+            border:none;
+            width:100%;
+            font-family:inherit;
+            text-align:left;
+            min-height:44px;
+            color:var(--text);
+            transition:all var(--transition);
         }
-        .volume-header:hover { background: var(--hover-bg); border-radius: 8px; }
-        .volume-header .arrow { font-size: 0.75rem; transition: transform var(--transition); min-width: 12px; color: var(--text-light); display: inline-block; }
-        .volume-header .arrow.expanded { transform: rotate(90deg); }
+        .volume-header:hover { background:var(--hover-bg); border-radius:8px; }
+        .volume-header .arrow { font-size:0.75rem; transition:transform var(--transition); min-width:12px; color:var(--text-light); display:inline-block; }
+        .volume-header .arrow.expanded { transform:rotate(90deg); }
         .volume-header .group-count {
-            font-size: 0.78rem;
-            color: var(--text-light);
-            background: var(--card);
-            padding: 2px 10px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
+            font-size:0.78rem;
+            color:var(--text-light);
+            background:var(--card);
+            padding:2px 10px;
+            border-radius:12px;
+            border:1px solid var(--border);
         }
-        .volume-body { padding: 4px 0 4px 10px; }
+        .volume-body { padding:4px 0 4px 10px; }
         .subcategory-title {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            letter-spacing: 1px;
-            padding: 10px 8px 4px 18px;
-            text-transform: uppercase;
-            font-weight: 600;
-            border-bottom: 1px dashed var(--border);
-            margin-bottom: 4px;
+            font-size:0.8rem;
+            color:var(--text-light);
+            letter-spacing:1px;
+            padding:10px 8px 4px 18px;
+            text-transform:uppercase;
+            font-weight:600;
+            border-bottom:1px dashed var(--border);
+            margin-bottom:4px;
         }
-        .poem-list { list-style: none; display: flex; flex-direction: column; gap: 2px; }
+        .poem-list { list-style:none; display:flex; flex-direction:column; gap:2px; }
         .poem-btn {
-            width: 100%;
-            padding: 10px 12px 10px 22px;
-            border: none;
-            background: transparent;
-            color: var(--text);
-            font-size: var(--font-small);
-            font-family: inherit;
-            cursor: pointer;
-            border-radius: 8px;
-            text-align: left;
-            transition: all var(--transition);
-            border: 1px solid transparent;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            min-height: 44px;
+            width:100%;
+            padding:10px 12px 10px 22px;
+            border:none;
+            background:transparent;
+            color:var(--text);
+            font-size:var(--font-small);
+            font-family:inherit;
+            cursor:pointer;
+            border-radius:8px;
+            text-align:left;
+            transition:all var(--transition);
+            border:1px solid transparent;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            min-height:44px;
+            display:flex;
+            align-items:center;
+            gap:6px;
         }
-        .poem-btn:hover { background: var(--hover-bg); border-color: var(--border); }
-        .poem-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; box-shadow: 0 2px 8px rgba(139,94,60,0.3); }
+        .poem-btn:hover { background:var(--hover-bg); border-color:var(--border); }
+        .poem-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); font-weight:600; box-shadow:0 2px 8px rgba(139,94,60,0.3); }
+        .poem-btn .mastered-star { color:#f5c842; font-size:1.1em; margin-left:auto; }
 
-        /* ===================== Content Area ===================== */
-        .content-area { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+        /* ========== 内容区 ========== */
+        .content-area { flex:1; min-width:0; display:flex; flex-direction:column; gap:20px; }
         .card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 28px 32px;
-            border: 1px solid var(--border);
+            background:var(--card);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            padding:28px 32px;
+            border:1px solid var(--border);
             transition: background var(--transition), border var(--transition);
         }
         .title-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 2px solid var(--border);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            flex-wrap:wrap;
+            gap:16px;
+            margin-bottom:20px;
+            padding-bottom:16px;
+            border-bottom:2px solid var(--border);
         }
-        .title-bar h2 { font-size: var(--font-large); color: var(--primary); letter-spacing: 1px; }
-        .title-bar .meta { color: var(--text-light); font-size: var(--font-small); }
-        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .title-bar h2 { font-size:var(--font-large); color:var(--primary); letter-spacing:1px; }
+        .title-bar .meta { color:var(--text-light); font-size:var(--font-small); }
+        .btn-group { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
         .btn {
-            padding: 12px 24px;
-            border: 2px solid var(--primary);
-            background: #fff;
-            color: var(--primary);
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: var(--font-base);
-            font-family: inherit;
-            letter-spacing: 1px;
-            transition: all var(--transition);
-            font-weight: 600;
-            min-height: var(--touch-target);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
+            padding:12px 24px;
+            border:2px solid var(--primary);
+            background:#fff;
+            color:var(--primary);
+            border-radius:30px;
+            cursor:pointer;
+            font-size:var(--font-base);
+            font-family:inherit;
+            letter-spacing:1px;
+            transition:all var(--transition);
+            font-weight:600;
+            min-height:var(--touch-target);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:6px;
         }
-        .btn:hover { background: var(--primary); color: #fff; }
-        .btn:active { transform: scale(0.96); }
-        .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .btn-primary:hover { background: var(--primary-light); border-color: var(--primary-light); }
-        .btn-outline { background: transparent; border-color: var(--border); color: var(--text-light); }
-        .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: var(--hover-bg); }
-        .btn-sm { padding: 10px 20px; font-size: var(--font-small); min-height: 44px; }
+        .btn:hover { background:var(--primary); color:#fff; }
+        .btn:active { transform:scale(0.96); }
+        .btn-primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+        .btn-primary:hover { background:var(--primary-light); border-color:var(--primary-light); }
+        .btn-outline { background:transparent; border-color:var(--border); color:var(--text-light); }
+        .btn-outline:hover { border-color:var(--primary); color:var(--primary); background:var(--hover-bg); }
+        .btn-sm { padding:10px 20px; font-size:var(--font-small); min-height:44px; }
+        .btn-mastered { border-color:#f5c842; color:#b8860b; }
+        .btn-mastered.active { background:#f5c842; color:#fff; border-color:#f5c842; }
 
         .input-area textarea {
-            width: 100%;
-            min-height: 280px;
-            padding: 20px 22px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: var(--font-base);
-            font-family: inherit;
-            line-height: 2.0;
-            letter-spacing: 1px;
-            resize: vertical;
-            transition: border-color var(--transition);
-            background: var(--input-bg);
-            color: var(--text);
+            width:100%;
+            min-height:280px;
+            padding:20px 22px;
+            border:2px solid var(--border);
+            border-radius:var(--radius-sm);
+            font-size:var(--font-base);
+            font-family:inherit;
+            line-height:2.0;
+            letter-spacing:1px;
+            resize:vertical;
+            transition:border-color var(--transition);
+            background:var(--input-bg);
+            color:var(--text);
         }
-        .input-area textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(139,94,60,0.12); }
+        .input-area textarea:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 4px rgba(139,94,60,0.12); }
 
-        /* Results */
         .result-area {
-            display: none;
-            margin-top: 20px;
-            padding: 20px 24px;
-            border-radius: var(--radius-sm);
-            font-size: var(--font-base);
-            line-height: 2.1;
-            letter-spacing: 0.5px;
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 500px;
-            overflow-y: auto;
-            border: 1px solid var(--border);
-            background: var(--input-bg);
+            display:none;
+            margin-top:20px;
+            padding:20px 24px;
+            border-radius:var(--radius-sm);
+            font-size:var(--font-base);
+            line-height:2.1;
+            letter-spacing:0.5px;
+            white-space:pre-wrap;
+            word-break:break-all;
+            max-height:500px;
+            overflow-y:auto;
+            border:1px solid var(--border);
+            background:var(--input-bg);
         }
-        .result-area.visible { display: block; }
-        .char-correct { color: var(--correct); background: var(--correct-bg); border-radius: 4px; padding: 1px 2px; }
-        .char-wrong { color: var(--wrong); background: var(--wrong-bg); border-radius: 4px; padding: 1px 3px; font-weight: 700; text-decoration: underline wavy var(--wrong); }
-        .char-missing { color: #fff; background: var(--missing-bg); border-radius: 4px; padding: 1px 3px; font-weight: 700; }
-        .char-extra { color: var(--wrong); background: var(--extra-bg); border-radius: 4px; padding: 1px 3px; text-decoration: line-through; }
+        .result-area.visible { display:block; }
+        .char-correct { color:var(--correct); background:var(--correct-bg); border-radius:4px; padding:1px 2px; }
+        .char-wrong { color:var(--wrong); background:var(--wrong-bg); border-radius:4px; padding:1px 3px; font-weight:700; text-decoration:underline wavy var(--wrong); }
+        .char-missing { color:#fff; background:var(--missing-bg); border-radius:4px; padding:1px 3px; font-weight:700; }
+        .char-extra { color:var(--wrong); background:var(--extra-bg); border-radius:4px; padding:1px 3px; text-decoration:line-through; }
 
-        /* Side-by-side */
         .compare-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-top: 12px;
-            font-size: var(--font-base);
-            line-height: 2.0;
+            display:none;
+            grid-template-columns:1fr 1fr;
+            gap:24px;
+            margin-top:12px;
+            font-size:var(--font-base);
+            line-height:2.0;
         }
-        .compare-col { padding: 12px; border-radius: 8px; background: var(--bg); border: 1px solid var(--border); }
-        .compare-col h4 { color: var(--primary); margin-bottom: 8px; font-size: var(--font-small); border-bottom: 1px solid var(--border); padding-bottom: 4px; }
-        .compare-col .line { display: flex; gap: 4px; flex-wrap: wrap; }
-        .compare-col .line .char-correct, .compare-col .line .char-wrong, .compare-col .line .char-missing, .compare-col .line .char-extra { display: inline-block; }
+        .compare-grid.visible { display:grid; }
+        .compare-col { padding:12px; border-radius:8px; background:var(--bg); border:1px solid var(--border); }
+        .compare-col h4 { color:var(--primary); margin-bottom:8px; font-size:var(--font-small); border-bottom:1px solid var(--border); padding-bottom:4px; }
+        .compare-col .line { display:flex; gap:4px; flex-wrap:wrap; }
+        .compare-col .line .char-correct, .compare-col .line .char-wrong, .compare-col .line .char-missing, .compare-col .line .char-extra { display:inline-block; }
 
         .score-bar {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            padding: 16px 20px;
-            background: var(--input-bg);
-            border-radius: var(--radius-sm);
-            margin-top: 16px;
-            border: 1px solid var(--border);
+            display:none;
+            align-items:center;
+            gap:16px;
+            flex-wrap:wrap;
+            padding:16px 20px;
+            background:var(--input-bg);
+            border-radius:var(--radius-sm);
+            margin-top:16px;
+            border:1px solid var(--border);
         }
-        .score-bar .score-text { font-size: var(--font-large); font-weight: 700; color: var(--primary); }
-        .progress-bar { flex: 1; min-width: 120px; height: 14px; background: var(--border); border-radius: 7px; overflow: hidden; }
-        .progress-bar .fill { height: 100%; background: var(--correct); border-radius: 7px; transition: width 0.5s ease; }
+        .score-bar.visible { display:flex; }
+        .score-bar .score-text { font-size:var(--font-large); font-weight:700; color:var(--primary); }
+        .progress-bar { flex:1; min-width:120px; height:14px; background:var(--border); border-radius:7px; overflow:hidden; }
+        .progress-bar .fill { height:100%; background:var(--correct); border-radius:7px; transition:width 0.5s ease; }
 
-        .original-text { display: none; margin-top: 16px; padding: 20px 24px; background: var(--input-bg); border: 1px dashed var(--border); border-radius: var(--radius-sm); white-space: pre-wrap; max-height: 500px; overflow-y: auto; }
-        .original-text.visible { display: block; }
-        .original-text .label { color: var(--primary); font-weight: 700; display: block; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        .original-text { display:none; margin-top:16px; padding:20px 24px; background:var(--input-bg); border:1px dashed var(--border); border-radius:var(--radius-sm); white-space:pre-wrap; max-height:500px; overflow-y:auto; }
+        .original-text.visible { display:block; }
+        .original-text .label { color:var(--primary); font-weight:700; display:block; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:8px; }
 
-        /* History & Stats */
         .stats-bar {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            padding: 12px 16px;
-            background: var(--input-bg);
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            margin-top: 12px;
-            font-size: var(--font-small);
+            display:flex;
+            gap:20px;
+            flex-wrap:wrap;
+            padding:12px 16px;
+            background:var(--input-bg);
+            border-radius:var(--radius-sm);
+            border:1px solid var(--border);
+            margin-top:12px;
+            font-size:var(--font-small);
         }
-        .stats-bar .stat-item { display: flex; align-items: center; gap: 6px; }
-        .stats-bar .stat-value { font-weight: 700; color: var(--primary); }
+        .stats-bar .stat-item { display:flex; align-items:center; gap:6px; }
+        .stats-bar .stat-value { font-weight:700; color:var(--primary); }
 
-        /* ===================== Modal ===================== */
+        /* ========== 模态框 ========== */
         .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: var(--modal-overlay);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 24px;
-            backdrop-filter: blur(4px);
+            display:none;
+            position:fixed;
+            top:0; left:0;
+            width:100%; height:100%;
+            background:var(--modal-overlay);
+            z-index:1000;
+            justify-content:center;
+            align-items:center;
+            padding:24px;
+            backdrop-filter:blur(4px);
         }
-        .modal-overlay.active { display: flex; }
+        .modal-overlay.active { display:flex; }
         .modal-content {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-strong);
-            max-width: 1000px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 28px 32px;
-            border: 1px solid var(--border);
+            background:var(--card);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow-strong);
+            max-width:1000px;
+            width:100%;
+            max-height:90vh;
+            overflow-y:auto;
+            padding:28px 32px;
+            border:1px solid var(--border);
         }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-        .modal-header h2 { color: var(--primary); font-size: var(--font-xl); }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+        .modal-header h2 { color:var(--primary); font-size:var(--font-xl); }
         .modal-close {
-            background: none; border: none; font-size: 2.4rem; cursor: pointer; color: var(--text-light); transition: color var(--transition); line-height: 1; min-width: 56px; min-height: 56px; border-radius: 50%;
+            background:none; border:none; font-size:2.4rem; cursor:pointer; color:var(--text-light); transition:color var(--transition); line-height:1; min-width:56px; min-height:56px; border-radius:50%;
         }
-        .modal-close:hover { color: var(--wrong); background: var(--wrong-bg); }
-        .manage-toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
-        .poem-edit-item { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 20px; background: var(--input-bg); margin-bottom: 16px; }
-        .poem-edit-item .field-row { display: flex; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-        .poem-edit-item .field-row label { font-size: var(--font-small); color: var(--text-light); min-width: 60px; font-weight: 600; }
+        .modal-close:hover { color:var(--wrong); background:var(--wrong-bg); }
+        .manage-toolbar { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px; align-items:center; }
+        .poem-edit-item { border:1px solid var(--border); border-radius:var(--radius-sm); padding:20px; background:var(--input-bg); margin-bottom:16px; }
+        .poem-edit-item .field-row { display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+        .poem-edit-item .field-row label { font-size:var(--font-small); color:var(--text-light); min-width:60px; font-weight:600; }
         .poem-edit-item .field-row input, .poem-edit-item .field-row select, .poem-edit-item .field-row textarea {
-            flex: 1; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 10px; font-family: inherit; font-size: var(--font-base); background: var(--card); color: var(--text); min-height: 48px;
+            flex:1; padding:12px 16px; border:1.5px solid var(--border); border-radius:10px; font-family:inherit; font-size:var(--font-base); background:var(--card); color:var(--text); min-height:48px;
         }
-        .poem-edit-item .field-row textarea { min-height: 100px; resize: vertical; }
-        .poem-edit-item .field-row select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b5e3c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
-        .custom-subcat-input { display: none; }
-        .custom-subcat-input.visible { display: block; }
-        .delete-btn { background: var(--wrong-bg); color: var(--wrong); border: 1.5px solid #ffcdd2; border-radius: 10px; padding: 10px 20px; cursor: pointer; font-size: var(--font-small); transition: all var(--transition); font-family: inherit; }
-        .delete-btn:hover { background: var(--wrong); color: #fff; }
+        .poem-edit-item .field-row textarea { min-height:100px; resize:vertical; }
+        .poem-edit-item .field-row select { cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b5e3c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:36px; }
+        .custom-subcat-input { display:none; }
+        .custom-subcat-input.visible { display:block; }
+        .delete-btn { background:var(--wrong-bg); color:var(--wrong); border:1.5px solid #ffcdd2; border-radius:10px; padding:10px 20px; cursor:pointer; font-size:var(--font-small); transition:all var(--transition); font-family:inherit; }
+        .delete-btn:hover { background:var(--wrong); color:#fff; }
 
-        /* ===================== Responsive ===================== */
-        @media (max-width: 1024px) {
-            .main-layout { flex-direction: column; }
-            .sidebar { flex: none; width: 100%; position: static; max-height: 320px; }
-            .poem-btn { white-space: normal; }
-            .card { padding: 20px; }
-            .compare-grid { grid-template-columns: 1fr; }
+        /* ========== 响应式 ========== */
+        @media (max-width:1024px) {
+            .main-layout { flex-direction:column; }
+            .sidebar { flex:none; width:100%; position:static; max-height:320px; }
+            .poem-btn { white-space:normal; }
+            .card { padding:20px; }
+            .compare-grid { grid-template-columns:1fr; }
         }
-        @media (max-width: 768px) {
-            body { padding: 12px; font-size: 15px; }
-            .title-bar h2 { font-size: 18px; }
-            .btn { padding: 10px 18px; font-size: 14px; min-height: 42px; }
-            .input-area textarea { min-height: 200px; font-size: 15px; padding: 14px 16px; }
-            .modal-content { padding: 16px; }
-            .sidebar { max-height: 280px; }
+        @media (max-width:768px) {
+            body { padding:12px; font-size:15px; }
+            .title-bar h2 { font-size:18px; }
+            .btn { padding:10px 18px; font-size:14px; min-height:42px; }
+            .input-area textarea { min-height:200px; font-size:15px; padding:14px 16px; }
+            .modal-content { padding:16px; }
+            .sidebar { max-height:280px; }
         }
     </style>
 </head>
@@ -574,6 +547,7 @@
                         <span class="meta" id="currentMeta">曹操</span>
                     </div>
                     <div class="btn-group">
+                        <button class="btn btn-outline btn-sm" id="masteredBtn">⭐ 标记掌握</button>
                         <button class="btn btn-outline btn-sm" id="toggleViewBtn">📊 并排对比</button>
                         <button class="btn btn-outline btn-sm" id="toggleOriginalBtn">📄 原文</button>
                         <button class="btn btn-outline btn-sm" id="clearBtn">🗑️ 清空</button>
@@ -587,13 +561,13 @@
                     <button class="btn btn-outline" id="resetBtn">🔄 重新开始</button>
                     <button class="btn btn-outline btn-sm" id="examModeBtn">📝 考试模式(5篇)</button>
                 </div>
-                <div class="score-bar" id="scoreBar" style="display:none;">
+                <div class="score-bar" id="scoreBar">
                     <span class="score-text" id="scoreText">正确率：0%</span>
                     <span class="score-detail" id="scoreDetail"></span>
                     <div class="progress-bar"><div class="fill" id="progressFill" style="width:0%;"></div></div>
                 </div>
                 <div class="result-area" id="resultArea"></div>
-                <div class="compare-grid" id="compareGrid" style="display:none;"></div>
+                <div class="compare-grid" id="compareGrid"></div>
             </div>
             <div class="card">
                 <div class="original-text" id="originalText">
@@ -601,7 +575,7 @@
                     <span id="originalContent"></span>
                 </div>
             </div>
-            <!-- 错题本快捷入口 -->
+            <!-- 错题本 -->
             <div class="card" style="padding:16px 24px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                     <span style="font-weight:600; color:var(--primary);">📕 错题本</span>
@@ -613,11 +587,11 @@
         </main>
     </div>
     <footer style="text-align:center; color:var(--text-light); font-size:0.85rem; padding:16px 0 8px;">
-        ⚠️ 一字一标点都不能错 · 支持暗色/并排/错题本/考试模式 · 数据自动保存
+        ⚠️ 一字一标点都不能错 · 数据自动保存 · 刷新不丢失
     </footer>
 </div>
 
-<!-- ===================== Manage Modal ===================== -->
+<!-- ========== 管理模态框 ========== -->
 <div class="modal-overlay" id="manageModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -638,9 +612,9 @@
 
 <script>
     (function() {
-        // ===================================================================
+        // ================================================================
         // 1. 初始数据
-        // ===================================================================
+        // ================================================================
         const INITIAL_POEMS = [
             { id:1, title:"观沧海", author:"曹操", grade:"七年级", volume:"上册", subcategory:"课内古诗词", text:"东临碣石，以观沧海。\n水何澹澹，山岛竦峙。\n树木丛生，百草丰茂。\n秋风萧瑟，洪波涌起。\n日月之行，若出其中；\n星汉灿烂，若出其里。\n幸甚至哉，歌以咏志。" },
             { id:2, title:"闻王昌龄左迁龙标遥有此寄", author:"李白", grade:"七年级", volume:"上册", subcategory:"课内古诗词", text:"杨花落尽子规啼，\n闻道龙标过五溪。\n我寄愁心与明月，\n随君直到夜郎西。" },
@@ -663,9 +637,9 @@
             { id:19, title:"潼关", author:"谭嗣同", grade:"七年级", volume:"上册", subcategory:"课外古诗词诵读", text:"终古高云簇此城，\n秋风吹散马蹄声。\n河流大野犹嫌束，\n山入潼关不解平。" }
         ];
 
-        // ===================================================================
-        // 2. 工具 & 存储服务
-        // ===================================================================
+        // ================================================================
+        // 2. 工具 & 存储
+        // ================================================================
         const PRESET_GRADES = ['七年级','八年级','九年级'];
         const PRESET_VOLUMES = ['上册','下册'];
         const PRESET_SUBCATEGORIES = ['课内古诗词','课内文言文','课外古诗词诵读','其他'];
@@ -676,13 +650,10 @@
             d.textContent = str;
             return d.innerHTML;
         }
-
-        // 净化输入 (DOMPurify)
         function sanitizeHtml(html) {
             if (window.DOMPurify) return DOMPurify.sanitize(html);
-            return html; // fallback
+            return html;
         }
-
         function debounce(fn, delay) {
             let timer;
             return function(...args) {
@@ -691,7 +662,6 @@
             };
         }
 
-        // 存储
         const Storage = {
             get(key, def) {
                 try { const v = localStorage.getItem('poemApp_'+key); return v ? JSON.parse(v) : def; } catch(e){ return def; }
@@ -701,9 +671,9 @@
             }
         };
 
-        // ===================================================================
+        // ================================================================
         // 3. 应用状态
-        // ===================================================================
+        // ================================================================
         let poems = [];
         let nextId = 1;
         let currentId = null;
@@ -711,16 +681,17 @@
         let expandedVolumes = {};
         let originalVisible = false;
         let compareMode = false;
-        let theme = 'light'; // 'light' | 'dark' | 'system'
-        let history = []; // {poemId, accuracy, replaces, deletes, inserts, timestamp, totalChars}
-        let wrongChars = {}; // { '澹': {count:3, contexts:['水何澹澹']} }
-        let draft = {}; // { poemId: text }
+        let theme = 'light';
+        let history = [];
+        let wrongChars = {};
+        let draft = {};
+        let mastered = []; // 已掌握的篇目ID列表
         let examMode = false;
         let examQueue = [];
         let examResults = [];
         let isSpeaking = false;
 
-        // DOM refs
+        // DOM
         const $ = (s) => document.querySelector(s);
         const $$ = (s) => document.querySelectorAll(s);
 
@@ -736,6 +707,7 @@
         const clearBtn = $('#clearBtn');
         const toggleOriginalBtn = $('#toggleOriginalBtn');
         const toggleViewBtn = $('#toggleViewBtn');
+        const masteredBtn = $('#masteredBtn');
         const resultArea = $('#resultArea');
         const compareGrid = $('#compareGrid');
         const scoreBar = $('#scoreBar');
@@ -757,9 +729,9 @@
         const reviewWrongBtn = $('#reviewWrongBtn');
         const clearWrongBtn = $('#clearWrongBtn');
 
-        // ===================================================================
+        // ================================================================
         // 4. 核心逻辑
-        // ===================================================================
+        // ================================================================
         function loadState() {
             poems = Storage.get('poems', JSON.parse(JSON.stringify(INITIAL_POEMS)));
             nextId = poems.length ? Math.max(...poems.map(p=>p.id)) + 1 : 1;
@@ -770,16 +742,14 @@
             history = Storage.get('history', []);
             wrongChars = Storage.get('wrongChars', {});
             draft = Storage.get('draft', {});
+            mastered = Storage.get('mastered', []);
             applyTheme(theme);
             renderSidebar();
             if (currentId && poems.find(p=>p.id===currentId)) selectPoem(currentId);
             else if (poems.length) selectPoem(poems[0].id);
             updateStats();
             updateWrongDisplay();
-            // 恢复草稿
-            if (currentId && draft[currentId]) {
-                inputText.value = draft[currentId];
-            }
+            updateMasteredBtn();
         }
 
         function saveState() {
@@ -791,6 +761,7 @@
             Storage.set('history', history);
             Storage.set('wrongChars', wrongChars);
             Storage.set('draft', draft);
+            Storage.set('mastered', mastered);
         }
 
         function applyTheme(t) {
@@ -817,23 +788,51 @@
             currentId = id;
             currentTitle.textContent = poem.title;
             currentMeta.textContent = `${poem.author}  |  ${poem.grade} ${poem.volume} · ${poem.subcategory}`;
-            // 恢复草稿
-            if (draft[id]) inputText.value = draft[id];
-            else inputText.value = '';
+            // 恢复草稿（如果存在）
+            if (draft[id]) {
+                inputText.value = draft[id];
+            } else {
+                inputText.value = '';
+            }
             resultArea.classList.remove('visible');
             resultArea.innerHTML = '';
-            compareGrid.style.display = 'none';
-            scoreBar.style.display = 'none';
+            compareGrid.classList.remove('visible');
+            compareGrid.innerHTML = '';
+            scoreBar.classList.remove('visible');
             originalText.classList.remove('visible');
             originalVisible = false;
             toggleOriginalBtn.textContent = '📄 原文';
             toggleViewBtn.textContent = '📊 并排对比';
             compareMode = false;
+            updateMasteredBtn();
             renderSidebar();
             saveState();
             inputText.focus();
         }
 
+        // ---- 掌握标记 ----
+        function toggleMastered() {
+            if (!currentId) return;
+            const idx = mastered.indexOf(currentId);
+            if (idx === -1) {
+                mastered.push(currentId);
+            } else {
+                mastered.splice(idx, 1);
+            }
+            saveState();
+            updateMasteredBtn();
+            renderSidebar();
+            updateStats();
+        }
+
+        function updateMasteredBtn() {
+            if (!currentId) return;
+            const isMastered = mastered.includes(currentId);
+            masteredBtn.textContent = isMastered ? '⭐ 已掌握' : '⭐ 标记掌握';
+            masteredBtn.classList.toggle('active', isMastered);
+        }
+
+        // ---- 比对算法 ----
         function diffChars(origArr, userArr) {
             const m = origArr.length, n = userArr.length;
             const dp = Array.from({length: m+1}, () => new Uint16Array(n+1));
@@ -864,26 +863,19 @@
             }
             ops.reverse();
             let correct=0, replaces=0, deletes=0, inserts=0;
+            const wrongList = [];
             ops.forEach(op => {
                 if (op.type === 'equal') correct++;
-                else if (op.type === 'replace') replaces++;
-                else if (op.type === 'delete') deletes++;
+                else if (op.type === 'replace') { replaces++; wrongList.push({ wrong: op.userChar, correct: op.origChar }); }
+                else if (op.type === 'delete') { deletes++; wrongList.push({ wrong: '【漏】', correct: op.char }); }
                 else if (op.type === 'insert') inserts++;
             });
             const total = origArr.length;
             const accuracy = total > 0 ? Math.round((correct/total)*1000)/10 : 0;
-            // 收集错字
-            const wrongList = [];
-            ops.forEach(op => {
-                if (op.type === 'replace') {
-                    wrongList.push({ wrong: op.userChar, correct: op.origChar });
-                } else if (op.type === 'delete') {
-                    wrongList.push({ wrong: '【漏】', correct: op.char });
-                }
-            });
             return { ops, correct, total, accuracy, replaces, deletes, inserts, wrongList };
         }
 
+        // ---- 检查默写 ----
         function checkDictation() {
             const poem = poems.find(p => p.id === currentId);
             if (!poem) { alert('请选择一篇诗文'); return; }
@@ -893,7 +885,8 @@
             const origArr = Array.from(orig);
             const userArr = Array.from(user);
             const result = diffChars(origArr, userArr);
-            // 保存历史
+
+            // 记录历史
             const record = {
                 poemId: poem.id,
                 timestamp: Date.now(),
@@ -904,31 +897,23 @@
                 totalChars: result.total
             };
             history.push(record);
-            if (history.length > 1000) history = history.slice(-1000); // 限长
+            if (history.length > 1000) history = history.slice(-1000);
 
             // 更新错题本
             result.wrongList.forEach(w => {
-                if (w.wrong === '【漏】') {
-                    // 漏字
-                    const key = '【漏】' + w.correct;
-                    if (!wrongChars[key]) wrongChars[key] = { count:0, contexts:[] };
-                    wrongChars[key].count += 1;
-                    if (wrongChars[key].contexts.length < 5) wrongChars[key].contexts.push(w.correct);
-                } else {
-                    if (!wrongChars[w.wrong]) wrongChars[w.wrong] = { count:0, contexts:[] };
-                    wrongChars[w.wrong].count += 1;
-                    if (wrongChars[w.wrong].contexts.length < 5) wrongChars[w.wrong].contexts.push(w.correct);
-                }
+                const key = w.wrong === '【漏】' ? '【漏】'+w.correct : w.wrong;
+                if (!wrongChars[key]) wrongChars[key] = { count:0, contexts:[] };
+                wrongChars[key].count += 1;
+                if (wrongChars[key].contexts.length < 5) wrongChars[key].contexts.push(w.correct);
             });
 
-            // 更新掌握状态 (正确率100%标记为掌握)
+            // 注意：此处不删除草稿，保留用户输入
             saveState();
             displayResult(result);
             updateStats();
             updateWrongDisplay();
-            // 草稿清除
-            delete draft[currentId];
-            saveState();
+            // 如果正确率100%，自动标记为掌握？可选，但用户可手动标记
+            // 这里不自动标记，让用户自己决定
         }
 
         function displayResult(result) {
@@ -953,18 +938,16 @@
             resultArea.innerHTML = sanitizeHtml(html);
             resultArea.classList.add('visible');
             resultArea.scrollTop = 0;
-            scoreBar.style.display = 'flex';
+            scoreBar.classList.add('visible');
             scoreText.textContent = `正确率：${accuracy}%`;
             scoreDetail.textContent = `正确 ${correct} / 共 ${total} 字；替换 ${replaces}，缺失 ${deletes}，多余 ${inserts}`;
             progressFill.style.width = `${accuracy}%`;
 
-            // 并排视图
             if (compareMode) {
                 renderCompare(result);
             } else {
-                compareGrid.style.display = 'none';
+                compareGrid.classList.remove('visible');
             }
-            // 滚动到结果
             resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
@@ -973,13 +956,11 @@
             if (!poem) return;
             const origLines = poem.text.split('\n');
             const userLines = inputText.value.split('\n');
-            // 对齐行数
             const maxLines = Math.max(origLines.length, userLines.length);
             let origHtml = '', userHtml = '';
             for (let i=0; i<maxLines; i++) {
                 const o = origLines[i] || '';
                 const u = userLines[i] || '';
-                // 对每行做字符比对
                 const oArr = Array.from(o);
                 const uArr = Array.from(u);
                 const localResult = diffChars(oArr, uArr);
@@ -1011,14 +992,13 @@
                 <div class="compare-col"><h4>📖 原文</h4>${origHtml}</div>
                 <div class="compare-col"><h4>✍️ 你的默写</h4>${userHtml}</div>
             `;
-            compareGrid.style.display = 'grid';
+            compareGrid.classList.add('visible');
         }
 
         function toggleCompare() {
             compareMode = !compareMode;
             toggleViewBtn.textContent = compareMode ? '📄 标记视图' : '📊 并排对比';
             if (compareMode) {
-                // 如果有结果，显示并排
                 if (resultArea.classList.contains('visible')) {
                     const poem = poems.find(p => p.id === currentId);
                     if (poem) {
@@ -1028,8 +1008,7 @@
                         renderCompare(result);
                     }
                 } else {
-                    compareGrid.style.display = 'grid';
-                    // 显示原文和当前输入
+                    // 无结果时显示原文与当前输入
                     const poem = poems.find(p => p.id === currentId);
                     if (poem) {
                         const origLines = poem.text.split('\n');
@@ -1044,11 +1023,11 @@
                             <div class="compare-col"><h4>📖 原文</h4>${oHtml}</div>
                             <div class="compare-col"><h4>✍️ 你的默写</h4>${uHtml}</div>
                         `;
-                        compareGrid.style.display = 'grid';
+                        compareGrid.classList.add('visible');
                     }
                 }
             } else {
-                compareGrid.style.display = 'none';
+                compareGrid.classList.remove('visible');
             }
         }
 
@@ -1071,8 +1050,9 @@
             inputText.value = '';
             resultArea.classList.remove('visible');
             resultArea.innerHTML = '';
-            scoreBar.style.display = 'none';
-            compareGrid.style.display = 'none';
+            scoreBar.classList.remove('visible');
+            compareGrid.classList.remove('visible');
+            compareGrid.innerHTML = '';
             delete draft[currentId];
             saveState();
             inputText.focus();
@@ -1083,9 +1063,9 @@
             if (currentId) selectPoem(currentId);
         }
 
-        // ===================================================================
-        // 5. 渲染侧边栏
-        // ===================================================================
+        // ================================================================
+        // 5. 侧边栏渲染
+        // ================================================================
         function renderSidebar() {
             const validGrades = new Set(poems.map(p=>p.grade));
             Object.keys(expandedGrades).forEach(g => { if (!validGrades.has(g)) delete expandedGrades[g]; });
@@ -1119,7 +1099,11 @@
                     for (const [subName, subPoems] of Object.entries(subcatGroups)) {
                         subcatHtml += `<div class="subcategory-title">${escapeHtml(subName)}</div><ul class="poem-list">`;
                         subPoems.forEach(p => {
-                            subcatHtml += `<li><button class="poem-btn ${p.id===currentId?'active':''}" data-id="${p.id}" title="${escapeHtml(p.title)}"><span>${escapeHtml(p.title)}</span></button></li>`;
+                            const isMastered = mastered.includes(p.id);
+                            subcatHtml += `<li><button class="poem-btn ${p.id===currentId?'active':''}" data-id="${p.id}" title="${escapeHtml(p.title)}">
+                                <span>${escapeHtml(p.title)}</span>
+                                ${isMastered ? '<span class="mastered-star">⭐</span>' : ''}
+                            </button></li>`;
                         });
                         subcatHtml += `</ul>`;
                     }
@@ -1144,7 +1128,7 @@
                     </div>`;
             }
             gradeAccordion.innerHTML = html;
-            // 绑定事件
+            // 事件绑定
             document.querySelectorAll('.grade-header').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const g = e.currentTarget.dataset.grade;
@@ -1168,13 +1152,13 @@
                     selectPoem(id);
                 });
             });
-            // 更新搜索
             totalPoemsCount.textContent = poems.length;
+            updateStats();
         }
 
-        // ===================================================================
-        // 6. 搜索（带防抖）
-        // ===================================================================
+        // ================================================================
+        // 6. 搜索（防抖）
+        // ================================================================
         function handleSearch(keyword) {
             const kw = keyword.trim().toLowerCase();
             if (!kw) {
@@ -1198,8 +1182,9 @@
             } else {
                 let html = '';
                 matches.forEach(p => {
+                    const isMastered = mastered.includes(p.id);
                     html += `<button class="poem-btn ${p.id===currentId?'active':''}" data-id="${p.id}">
-                        <span class="result-title">${highlightText(p.title, kw)}</span>
+                        <span class="result-title">${highlightText(p.title, kw)} ${isMastered ? '⭐' : ''}</span>
                         <span class="result-meta">${highlightText(p.author, kw)} · ${escapeHtml(p.grade+p.volume+' '+p.subcategory)}</span>
                     </button>`;
                 });
@@ -1235,18 +1220,13 @@
 
         const debouncedSearch = debounce(handleSearch, 300);
 
-        // ===================================================================
+        // ================================================================
         // 7. 统计 & 错题本
-        // ===================================================================
+        // ================================================================
         function updateStats() {
-            const attempts = history.filter(h => h.poemId === currentId).length;
+            const masteredSet = new Set(mastered);
+            masteredCount.textContent = masteredSet.size;
             totalAttempts.textContent = history.length;
-            // 掌握：某篇正确率达到100%至少一次
-            const mastered = new Set();
-            history.forEach(h => {
-                if (h.accuracy === 100) mastered.add(h.poemId);
-            });
-            masteredCount.textContent = mastered.size;
         }
 
         function updateWrongDisplay() {
@@ -1257,17 +1237,14 @@
         function reviewWrong() {
             const keys = Object.keys(wrongChars);
             if (!keys.length) { alert('🎉 错题本为空，继续加油！'); return; }
-            // 随机挑一个错字，找到包含该字的篇目
             const key = keys[Math.floor(Math.random() * keys.length)];
             const target = key.startsWith('【漏】') ? key.replace('【漏】','') : key;
-            // 找包含该字的篇目
             const found = poems.find(p => p.text.includes(target));
             if (found) {
                 selectPoem(found.id);
                 alert(`🔁 复习错字：“${target}” （来自“${found.title}”），请重新默写！`);
                 inputText.focus();
             } else {
-                // 随便选一篇
                 if (poems.length) selectPoem(poems[0].id);
                 alert(`错字“${target}”未找到对应篇目，请手动复习。`);
             }
@@ -1281,9 +1258,9 @@
             alert('错题本已清空！');
         }
 
-        // ===================================================================
+        // ================================================================
         // 8. 考试模式
-        // ===================================================================
+        // ================================================================
         function startExam() {
             if (poems.length < 5) { alert('题库少于5篇，无法考试'); return; }
             const shuffled = [...poems].sort(() => Math.random() - 0.5);
@@ -1293,14 +1270,12 @@
             alert(`📝 考试模式：共 ${examQueue.length} 篇，请依次默写！`);
             selectPoem(examQueue[0].id);
             examModeBtn.textContent = `📝 考试中 (${examResults.length+1}/${examQueue.length})`;
-            // 监听检查完成
         }
 
         function handleExamCheck() {
             if (!examMode || !examQueue.length) return;
             const poem = poems.find(p => p.id === currentId);
             if (!poem) return;
-            // 检查当前篇目
             const user = inputText.value;
             if (user.trim().length === 0) { alert('请先输入默写内容！'); return; }
             const orig = poem.text;
@@ -1308,9 +1283,7 @@
             const userArr = Array.from(user);
             const result = diffChars(origArr, userArr);
             examResults.push({ title: poem.title, accuracy: result.accuracy });
-            // 显示结果但不保存历史? 保持保存
             displayResult(result);
-            // 保存历史
             history.push({
                 poemId: poem.id,
                 timestamp: Date.now(),
@@ -1323,14 +1296,12 @@
             saveState();
             updateStats();
 
-            // 下一题
             const idx = examResults.length;
             if (idx < examQueue.length) {
                 alert(`✅ 第 ${idx} 篇完成！正确率 ${result.accuracy}%。点击确定继续下一篇。`);
                 selectPoem(examQueue[idx].id);
                 examModeBtn.textContent = `📝 考试中 (${idx+1}/${examQueue.length})`;
             } else {
-                // 考试结束
                 examMode = false;
                 const avg = examResults.reduce((s,r) => s + r.accuracy, 0) / examResults.length;
                 let summary = `📊 考试结束！\n平均正确率：${avg.toFixed(1)}%\n\n`;
@@ -1345,9 +1316,9 @@
             }
         }
 
-        // ===================================================================
+        // ================================================================
         // 9. 随机 & 语音
-        // ===================================================================
+        // ================================================================
         function randomPoem() {
             if (!poems.length) return;
             const idx = Math.floor(Math.random() * poems.length);
@@ -1357,7 +1328,7 @@
         function speakPoem() {
             const poem = poems.find(p => p.id === currentId);
             if (!poem) return;
-            if (isSpeaking) { window.speechSynthesis?.cancel(); isSpeaking = false; return; }
+            if (isSpeaking) { window.speechSynthesis?.cancel(); isSpeaking = false; speakBtn.textContent = '🔊 朗读'; return; }
             if (!window.speechSynthesis) { alert('浏览器不支持语音朗读'); return; }
             const utter = new SpeechSynthesisUtterance(poem.text);
             utter.lang = 'zh-CN';
@@ -1370,9 +1341,9 @@
             window.speechSynthesis.speak(utter);
         }
 
-        // ===================================================================
+        // ================================================================
         // 10. 题库管理
-        // ===================================================================
+        // ================================================================
         function openManage() { manageModal.classList.add('active'); renderManageList(); }
         function closeManage() { collectManageData(); manageModal.classList.remove('active'); renderSidebar(); updateStats(); saveState(); }
 
@@ -1486,9 +1457,9 @@
             alert('已恢复默认题库。');
         }
 
-        // ===================================================================
+        // ================================================================
         // 11. 草稿自动保存
-        // ===================================================================
+        // ================================================================
         function saveDraft() {
             if (currentId) {
                 const val = inputText.value;
@@ -1499,9 +1470,9 @@
         }
         const debouncedDraft = debounce(saveDraft, 500);
 
-        // ===================================================================
+        // ================================================================
         // 12. 事件绑定
-        // ===================================================================
+        // ================================================================
         function init() {
             loadState();
 
@@ -1525,6 +1496,7 @@
             clearBtn.addEventListener('click', clearAll);
             toggleOriginalBtn.addEventListener('click', toggleOriginal);
             toggleViewBtn.addEventListener('click', toggleCompare);
+            masteredBtn.addEventListener('click', toggleMastered);
             randomBtn.addEventListener('click', randomPoem);
             speakBtn.addEventListener('click', speakPoem);
             examModeBtn.addEventListener('click', () => {
@@ -1563,19 +1535,17 @@
             document.getElementById('restoreDefaultBtn').addEventListener('click', restoreDefault);
             manageModal.addEventListener('click', (e) => { if (e.target === manageModal) closeManage(); });
 
-            // 系统主题变化监听
+            // 系统主题变化
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
                 if (theme === 'system') applyTheme('system');
             });
 
-            // 窗口关闭前保存
+            // 页面关闭前保存
             window.addEventListener('beforeunload', () => { saveDraft(); saveState(); });
         }
 
-        // 启动
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
         else init();
-
     })();
 </script>
 </body>
