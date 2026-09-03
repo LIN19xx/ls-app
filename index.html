@@ -1,22 +1,21 @@
 <!DOCTYPE html>
-
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-    <title>古诗文默写 · 智能学习系统</title>
+    <title>古诗文默写 · 智能学习系统 V2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" defer></script>
     <style>
-        /* ========== 主题变量 ========== */
+        /* ===== 主题变量 ===== */
         :root {
-            --font-base: 17px;
-            --font-small: 15px;
-            --font-large: 20px;
-            --font-xl: 28px;
+            --font-base: 20px;
+            --font-small: 17px;
+            --font-large: 22px;
+            --font-xl: 30px;
             --radius: 16px;
             --radius-sm: 10px;
             --shadow: 0 4px 20px rgba(0,0,0,0.08);
-            --touch-target: 48px;
+            --touch-target: 50px;
             --transition: 0.25s ease;
             --bg: #f5f0e8;
             --card: #ffffff;
@@ -35,6 +34,8 @@
             --input-bg: #fdfcf9;
             --hover-bg: #f5f0ea;
             --shadow-strong: 0 16px 50px rgba(0,0,0,0.25);
+            --gold: #f5c842;
+            --chart-grid: #d4c8b8;
         }
         [data-theme="dark"] {
             --bg: #1a1816;
@@ -55,6 +56,7 @@
             --hover-bg: #3a352e;
             --shadow: 0 4px 20px rgba(0,0,0,0.4);
             --shadow-strong: 0 16px 50px rgba(0,0,0,0.6);
+            --chart-grid: #4a443c;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -62,7 +64,7 @@
             background: var(--bg);
             color: var(--text);
             min-height:100vh;
-            padding:20px 24px;
+            padding:20px 28px;
             display:flex;
             justify-content:center;
             align-items:flex-start;
@@ -72,24 +74,25 @@
         }
         .app-container { width:100%; max-width:1440px; display:flex; flex-direction:column; gap:24px; }
 
-        /* ========== 头部 ========== */
+        /* ===== 头部 ===== */
         header {
             display:flex;
             justify-content:space-between;
             align-items:center;
             flex-wrap:wrap;
-            gap:12px;
-            padding:16px 0 8px;
+            gap:14px;
+            padding:14px 0 10px;
             border-bottom:2px solid var(--border);
         }
+        header .logo { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
         header h1 { font-size:var(--font-xl); color:var(--primary); letter-spacing:2px; font-weight:700; }
-        .header-actions { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+        .header-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
         .btn-icon {
             background:var(--card);
             border:1px solid var(--border);
             border-radius:30px;
             padding:8px 18px;
-            font-size:var(--font-base);
+            font-size:var(--font-small);
             cursor:pointer;
             transition:all var(--transition);
             display:flex;
@@ -109,7 +112,7 @@
             padding:12px 28px;
             border-radius:30px;
             cursor:pointer;
-            font-size:var(--font-base);
+            font-size:var(--font-small);
             font-family:inherit;
             transition:all var(--transition);
             box-shadow:0 2px 12px rgba(139,94,60,0.35);
@@ -119,138 +122,145 @@
             gap:8px;
         }
         .btn-manage:hover { background:var(--primary-light); transform:translateY(-2px); }
+        .badge-achievement {
+            background:var(--gold);
+            color:#7a5a2a;
+            border-radius:20px;
+            padding:4px 16px;
+            font-size:0.9rem;
+            font-weight:700;
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            cursor:pointer;
+        }
+        .streak-badge {
+            background:var(--card);
+            border:1px solid var(--gold);
+            border-radius:20px;
+            padding:4px 16px;
+            font-size:0.9rem;
+            color:var(--text);
+        }
 
-        /* ========== 主布局 ========== */
-        .main-layout { display:flex; gap:24px; align-items:flex-start; }
+        /* ===== 主布局 ===== */
+        .main-layout { display:flex; gap:28px; align-items:flex-start; }
         .sidebar {
-            flex:0 0 340px;
+            flex:0 0 380px;
             background:var(--card);
             border-radius:var(--radius);
             box-shadow:var(--shadow);
-            padding:20px 16px;
-            max-height:82vh;
+            border:1px solid var(--border);
+            max-height:85vh;
             overflow-y:auto;
             position:sticky;
-            top:24px;
-            border:1px solid var(--border);
+            top:16px;
             display:flex;
             flex-direction:column;
-            gap:16px;
             transition: background var(--transition), border var(--transition);
         }
-        .sidebar h2 { font-size:1.2rem; color:var(--primary); text-align:center; border-bottom:2px solid var(--primary); padding-bottom:12px; }
-        .search-box { position:relative; flex-shrink:0; }
+        .sidebar-tabs {
+            display:flex;
+            border-bottom:2px solid var(--border);
+            flex-shrink:0;
+        }
+        .sidebar-tabs button {
+            flex:1;
+            padding:16px 10px;
+            background:transparent;
+            border:none;
+            font-family:inherit;
+            font-size:var(--font-small);
+            font-weight:600;
+            color:var(--text-light);
+            cursor:pointer;
+            transition:all var(--transition);
+            border-bottom:3px solid transparent;
+            min-height:var(--touch-target);
+        }
+        .sidebar-tabs button.active {
+            color:var(--primary);
+            border-bottom-color:var(--primary);
+        }
+        .sidebar-tabs button:hover { background:var(--hover-bg); }
+        .sidebar-panel {
+            padding:18px 20px;
+            overflow-y:auto;
+            flex:1;
+        }
+        .sidebar-panel.hidden { display:none; }
+
+        /* 文库面板 */
+        .search-box { position:relative; margin-bottom:14px; }
         .search-box input {
             width:100%;
-            padding:14px 44px 14px 18px;
+            padding:14px 48px 14px 20px;
             border:2px solid var(--border);
             border-radius:30px;
-            font-size:var(--font-base);
+            font-size:var(--font-small);
             font-family:inherit;
             background:var(--input-bg);
             color:var(--text);
             transition:all var(--transition);
             outline:none;
-            min-height:var(--touch-target);
+            min-height:50px;
         }
-        .search-box input:focus { border-color:var(--primary); box-shadow:0 0 0 4px rgba(139,94,60,0.15); }
+        .search-box input:focus { border-color:var(--primary); }
         .search-clear {
-            position:absolute;
-            right:8px;
-            top:50%;
-            transform:translateY(-50%);
-            background:none;
-            border:none;
-            font-size:1.6rem;
-            cursor:pointer;
-            color:var(--text-light);
-            padding:8px 12px;
-            border-radius:50%;
-            display:none;
-            min-width:44px;
-            min-height:44px;
-            align-items:center;
-            justify-content:center;
+            position:absolute; right:12px; top:50%; transform:translateY(-50%);
+            background:none; border:none; font-size:2rem; cursor:pointer; color:var(--text-light);
+            display:none; padding:6px 12px; border-radius:50%;
         }
-        .search-clear.visible { display:flex; }
+        .search-clear.visible { display:block; }
         .search-clear:hover { background:var(--wrong-bg); color:var(--wrong); }
-
         .search-results { display:none; flex-direction:column; gap:6px; }
         .search-results.visible { display:flex; }
-        .search-results .no-result { text-align:center; color:var(--text-light); padding:24px 12px; font-style:italic; }
-        .search-results .poem-btn {
-            width:100%;
-            padding:14px 16px;
-            border:none;
-            background:transparent;
-            color:var(--text);
-            font-size:var(--font-base);
-            font-family:inherit;
-            cursor:pointer;
-            border-radius:var(--radius-sm);
-            text-align:left;
-            transition:all var(--transition);
-            border:1px solid transparent;
-            display:flex;
-            flex-direction:column;
-            gap:4px;
-            min-height:var(--touch-target);
-        }
-        .search-results .poem-btn:hover { background:var(--hover-bg); border-color:var(--border); }
-        .search-results .poem-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
-        .search-results .poem-btn mark { background:#fff3cd; color:#8b5e00; padding:2px 4px; border-radius:4px; }
-        .search-results .poem-btn.active mark { background:rgba(255,255,255,0.4); color:#fff; }
+        .search-results .no-result { text-align:center; color:var(--text-light); padding:24px; font-style:italic; }
 
-        /* 手风琴 */
         .grade-group {
             border:1px solid var(--border);
             border-radius:var(--radius-sm);
             overflow:hidden;
             margin-bottom:10px;
-            transition:border var(--transition);
         }
         .grade-group.collapsed > .grade-body { display:none; }
         .grade-header {
-            padding:14px 16px;
+            padding:12px 16px;
             cursor:pointer;
             display:flex;
             align-items:center;
             gap:10px;
             background:var(--input-bg);
-            transition:all var(--transition);
-            user-select:none;
             border:none;
             width:100%;
             font-family:inherit;
-            text-align:left;
             font-weight:700;
             min-height:var(--touch-target);
-            font-size:var(--font-base);
+            font-size:var(--font-small);
             color:var(--text);
         }
         .grade-header:hover { background:var(--hover-bg); }
-        .grade-header .arrow { font-size:0.85rem; transition:transform var(--transition); min-width:16px; color:var(--text-light); display:inline-block; }
+        .grade-header .arrow { font-size:0.8rem; transition:transform var(--transition); color:var(--text-light); }
         .grade-header .arrow.expanded { transform:rotate(90deg); }
         .grade-header .group-count {
-            font-size:var(--font-small);
+            font-size:0.8rem;
             color:var(--text-light);
             background:var(--card);
             padding:4px 12px;
-            border-radius:16px;
+            border-radius:12px;
             border:1px solid var(--border);
-            min-width:32px;
-            text-align:center;
+            margin-left:auto;
         }
-        .grade-body { padding:6px; background:var(--card); }
+        .grade-body { padding:8px; }
         .volume-group {
             border-left:3px solid var(--border);
-            margin-left:16px;
+            margin-left:14px;
             padding-left:10px;
             margin-bottom:6px;
         }
         .volume-group.collapsed > .volume-body { display:none; }
         .volume-header {
-            padding:10px 12px;
+            padding:8px 12px;
             cursor:pointer;
             display:flex;
             align-items:center;
@@ -259,41 +269,31 @@
             border:none;
             width:100%;
             font-family:inherit;
-            text-align:left;
-            min-height:44px;
+            min-height:40px;
+            font-size:0.95rem;
             color:var(--text);
-            transition:all var(--transition);
         }
         .volume-header:hover { background:var(--hover-bg); border-radius:8px; }
-        .volume-header .arrow { font-size:0.75rem; transition:transform var(--transition); min-width:12px; color:var(--text-light); display:inline-block; }
+        .volume-header .arrow { font-size:0.7rem; transition:transform var(--transition); color:var(--text-light); }
         .volume-header .arrow.expanded { transform:rotate(90deg); }
-        .volume-header .group-count {
-            font-size:0.78rem;
-            color:var(--text-light);
-            background:var(--card);
-            padding:2px 10px;
-            border-radius:12px;
-            border:1px solid var(--border);
-        }
-        .volume-body { padding:4px 0 4px 10px; }
+        .volume-header .group-count { font-size:0.75rem; color:var(--text-light); background:var(--card); padding:2px 10px; border-radius:10px; border:1px solid var(--border); margin-left:auto; }
+        .volume-body { padding:6px 0 6px 10px; }
         .subcategory-title {
-            font-size:0.8rem;
+            font-size:0.85rem;
             color:var(--text-light);
-            letter-spacing:1px;
-            padding:10px 8px 4px 18px;
-            text-transform:uppercase;
+            padding:8px 8px 4px 14px;
             font-weight:600;
             border-bottom:1px dashed var(--border);
             margin-bottom:4px;
         }
-        .poem-list { list-style:none; display:flex; flex-direction:column; gap:2px; }
+        .poem-list { list-style:none; display:flex; flex-direction:column; gap:3px; }
         .poem-btn {
             width:100%;
-            padding:10px 12px 10px 22px;
+            padding:8px 12px 8px 18px;
             border:none;
             background:transparent;
             color:var(--text);
-            font-size:var(--font-small);
+            font-size:0.9rem;
             font-family:inherit;
             cursor:pointer;
             border-radius:8px;
@@ -303,17 +303,85 @@
             white-space:nowrap;
             overflow:hidden;
             text-overflow:ellipsis;
-            min-height:44px;
+            min-height:40px;
             display:flex;
             align-items:center;
-            gap:6px;
+            gap:8px;
         }
         .poem-btn:hover { background:var(--hover-bg); border-color:var(--border); }
-        .poem-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); font-weight:600; box-shadow:0 2px 8px rgba(139,94,60,0.3); }
-        .poem-btn .mastered-star { color:#f5c842; font-size:1.1em; margin-left:auto; }
+        .poem-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); font-weight:600; }
+        .poem-btn .mastered-star { color:var(--gold); font-size:1.1em; margin-left:auto; }
+        .poem-btn .wrong-badge { background:var(--wrong-bg); color:var(--wrong); border-radius:12px; padding:0 10px; font-size:0.75rem; margin-left:auto; }
 
-        /* ========== 内容区 ========== */
-        .content-area { flex:1; min-width:0; display:flex; flex-direction:column; gap:20px; }
+        /* 仪表盘面板 */
+        .stats-grid {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:14px;
+            margin-bottom:24px;
+        }
+        .stat-card {
+            background:var(--input-bg);
+            border-radius:var(--radius-sm);
+            padding:14px;
+            text-align:center;
+            border:1px solid var(--border);
+        }
+        .stat-card .number { font-size:2rem; font-weight:700; color:var(--primary); }
+        .stat-card .label { font-size:0.85rem; color:var(--text-light); }
+
+        .chart-container {
+            background:var(--input-bg);
+            border-radius:var(--radius-sm);
+            padding:14px;
+            border:1px solid var(--border);
+            margin-bottom:18px;
+        }
+        .chart-container canvas { width:100% !important; height:auto !important; max-height:180px; }
+        .chart-title { font-size:1rem; font-weight:600; color:var(--text-light); margin-bottom:10px; }
+
+        .mastery-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(80px,1fr));
+            gap:8px;
+            margin-top:10px;
+        }
+        .mastery-cell {
+            background:var(--input-bg);
+            border-radius:8px;
+            padding:8px 4px;
+            text-align:center;
+            font-size:0.8rem;
+            border:1px solid var(--border);
+            transition:all var(--transition);
+        }
+        .mastery-cell.mastered { background:var(--correct-bg); border-color:var(--correct); }
+        .mastery-cell.partial { background:#fff3cd; border-color:#f5c842; }
+        .mastery-cell.poor { background:var(--wrong-bg); border-color:var(--wrong); }
+
+        .review-queue {
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+            margin-top:14px;
+        }
+        .review-item {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:12px 16px;
+            background:var(--input-bg);
+            border-radius:var(--radius-sm);
+            border-left:4px solid var(--primary);
+            cursor:pointer;
+            transition:all var(--transition);
+        }
+        .review-item:hover { background:var(--hover-bg); }
+        .review-item .title { font-weight:600; font-size:1rem; }
+        .review-item .priority { font-size:0.85rem; color:var(--text-light); }
+
+        /* 内容区 */
+        .content-area { flex:1; min-width:0; display:flex; flex-direction:column; gap:24px; }
         .card {
             background:var(--card);
             border-radius:var(--radius);
@@ -327,28 +395,27 @@
             align-items:center;
             justify-content:space-between;
             flex-wrap:wrap;
-            gap:16px;
-            margin-bottom:20px;
-            padding-bottom:16px;
+            gap:14px;
+            margin-bottom:18px;
+            padding-bottom:14px;
             border-bottom:2px solid var(--border);
         }
         .title-bar h2 { font-size:var(--font-large); color:var(--primary); letter-spacing:1px; }
         .title-bar .meta { color:var(--text-light); font-size:var(--font-small); }
-        .btn-group { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+        .btn-group { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
         .btn {
-            padding:12px 24px;
+            padding:10px 24px;
             border:2px solid var(--primary);
             background:#fff;
             color:var(--primary);
             border-radius:30px;
             cursor:pointer;
-            font-size:var(--font-base);
+            font-size:var(--font-small);
             font-family:inherit;
-            letter-spacing:1px;
             transition:all var(--transition);
             font-weight:600;
             min-height:var(--touch-target);
-            display:flex;
+            display:inline-flex;
             align-items:center;
             justify-content:center;
             gap:6px;
@@ -359,14 +426,16 @@
         .btn-primary:hover { background:var(--primary-light); border-color:var(--primary-light); }
         .btn-outline { background:transparent; border-color:var(--border); color:var(--text-light); }
         .btn-outline:hover { border-color:var(--primary); color:var(--primary); background:var(--hover-bg); }
-        .btn-sm { padding:10px 20px; font-size:var(--font-small); min-height:44px; }
-        .btn-mastered { border-color:#f5c842; color:#b8860b; }
-        .btn-mastered.active { background:#f5c842; color:#fff; border-color:#f5c842; }
+        .btn-sm { padding:8px 18px; font-size:0.9rem; min-height:40px; }
+        .btn-mastered { border-color:var(--gold); color:#b8860b; }
+        .btn-mastered.active { background:var(--gold); color:#fff; border-color:var(--gold); }
+        .btn-focus { background:#2c3e50; color:#fff; border-color:#2c3e50; }
+        .btn-focus:hover { background:#1a2632; }
 
         .input-area textarea {
             width:100%;
             min-height:280px;
-            padding:20px 22px;
+            padding:20px 24px;
             border:2px solid var(--border);
             border-radius:var(--radius-sm);
             font-size:var(--font-base);
@@ -378,78 +447,107 @@
             background:var(--input-bg);
             color:var(--text);
         }
-        .input-area textarea:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 4px rgba(139,94,60,0.12); }
+        .input-area textarea:focus { outline:none; border-color:var(--primary); }
 
         .result-area {
             display:none;
-            margin-top:20px;
-            padding:20px 24px;
+            margin-top:18px;
+            padding:18px 24px;
             border-radius:var(--radius-sm);
             font-size:var(--font-base);
-            line-height:2.1;
-            letter-spacing:0.5px;
+            line-height:2.2;
             white-space:pre-wrap;
             word-break:break-all;
-            max-height:500px;
+            max-height:450px;
             overflow-y:auto;
             border:1px solid var(--border);
             background:var(--input-bg);
         }
         .result-area.visible { display:block; }
-        .char-correct { color:var(--correct); background:var(--correct-bg); border-radius:4px; padding:1px 2px; }
+        .char-correct { color:var(--correct); background:var(--correct-bg); border-radius:4px; padding:1px 3px; }
         .char-wrong { color:var(--wrong); background:var(--wrong-bg); border-radius:4px; padding:1px 3px; font-weight:700; text-decoration:underline wavy var(--wrong); }
         .char-missing { color:#fff; background:var(--missing-bg); border-radius:4px; padding:1px 3px; font-weight:700; }
         .char-extra { color:var(--wrong); background:var(--extra-bg); border-radius:4px; padding:1px 3px; text-decoration:line-through; }
 
-        .compare-grid {
-            display:none;
-            grid-template-columns:1fr 1fr;
-            gap:24px;
-            margin-top:12px;
-            font-size:var(--font-base);
-            line-height:2.0;
-        }
-        .compare-grid.visible { display:grid; }
-        .compare-col { padding:12px; border-radius:8px; background:var(--bg); border:1px solid var(--border); }
-        .compare-col h4 { color:var(--primary); margin-bottom:8px; font-size:var(--font-small); border-bottom:1px solid var(--border); padding-bottom:4px; }
-        .compare-col .line { display:flex; gap:4px; flex-wrap:wrap; }
-        .compare-col .line .char-correct, .compare-col .line .char-wrong, .compare-col .line .char-missing, .compare-col .line .char-extra { display:inline-block; }
-
         .score-bar {
             display:none;
             align-items:center;
-            gap:16px;
+            gap:18px;
             flex-wrap:wrap;
-            padding:16px 20px;
+            padding:14px 20px;
             background:var(--input-bg);
             border-radius:var(--radius-sm);
-            margin-top:16px;
+            margin-top:14px;
             border:1px solid var(--border);
         }
         .score-bar.visible { display:flex; }
         .score-bar .score-text { font-size:var(--font-large); font-weight:700; color:var(--primary); }
-        .progress-bar { flex:1; min-width:120px; height:14px; background:var(--border); border-radius:7px; overflow:hidden; }
-        .progress-bar .fill { height:100%; background:var(--correct); border-radius:7px; transition:width 0.5s ease; }
+        .progress-bar { flex:1; min-width:120px; height:12px; background:var(--border); border-radius:6px; overflow:hidden; }
+        .progress-bar .fill { height:100%; background:var(--correct); border-radius:6px; transition:width 0.5s ease; }
 
-        .original-text { display:none; margin-top:16px; padding:20px 24px; background:var(--input-bg); border:1px dashed var(--border); border-radius:var(--radius-sm); white-space:pre-wrap; max-height:500px; overflow-y:auto; }
+        .compare-grid {
+            display:none;
+            grid-template-columns:1fr 1fr;
+            gap:18px;
+            margin-top:14px;
+            font-size:var(--font-base);
+            line-height:2.0;
+        }
+        .compare-grid.visible { display:grid; }
+        .compare-col { padding:14px; border-radius:8px; background:var(--bg); border:1px solid var(--border); overflow-x:auto; }
+        .compare-col h4 { color:var(--primary); margin-bottom:8px; font-size:1rem; border-bottom:1px solid var(--border); padding-bottom:6px; }
+
+        .original-text {
+            display:none;
+            margin-top:14px;
+            padding:18px 24px;
+            background:var(--input-bg);
+            border:1px dashed var(--border);
+            border-radius:var(--radius-sm);
+            white-space:pre-wrap;
+            max-height:450px;
+            overflow-y:auto;
+        }
         .original-text.visible { display:block; }
-        .original-text .label { color:var(--primary); font-weight:700; display:block; margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:8px; }
+        .original-text .label { color:var(--primary); font-weight:700; display:block; margin-bottom:10px; }
 
-        .stats-bar {
+        .status-bar {
             display:flex;
             gap:20px;
             flex-wrap:wrap;
-            padding:12px 16px;
-            background:var(--input-bg);
-            border-radius:var(--radius-sm);
-            border:1px solid var(--border);
-            margin-top:12px;
-            font-size:var(--font-small);
+            padding:10px 0;
+            font-size:0.95rem;
+            color:var(--text-light);
+            border-bottom:1px solid var(--border);
+            margin-bottom:14px;
         }
-        .stats-bar .stat-item { display:flex; align-items:center; gap:6px; }
-        .stats-bar .stat-value { font-weight:700; color:var(--primary); }
+        .status-bar .item { display:flex; align-items:center; gap:6px; }
+        .status-bar .item strong { color:var(--text); }
 
-        /* ========== 模态框 ========== */
+        /* 专注模式 */
+        .focus-mode .sidebar,
+        .focus-mode header .header-actions .btn-icon:not(.btn-focus),
+        .focus-mode header .btn-manage,
+        .focus-mode .card .btn-group .btn:not(.btn-focus),
+        .focus-mode .card .title-bar .meta,
+        .focus-mode .status-bar,
+        .focus-mode .original-text,
+        .focus-mode .compare-grid,
+        .focus-mode .score-bar .score-detail,
+        .focus-mode .btn-group .btn-outline,
+        .focus-mode .btn-group .btn-mastered,
+        .focus-mode .btn-group .btn-sm:not(.btn-focus) {
+            display: none !important;
+        }
+        .focus-mode .sidebar { display: none !important; }
+        .focus-mode .main-layout { justify-content: center; }
+        .focus-mode .content-area { max-width: 850px; }
+        .focus-mode .input-area textarea { min-height: 450px; }
+        .focus-mode .card { box-shadow: none; border-color: transparent; background: transparent; }
+        .focus-mode .btn-focus { background: var(--wrong); border-color: var(--wrong); color:#fff; }
+        .focus-mode .btn-focus:hover { background: var(--wrong-bg); color:var(--wrong); }
+
+        /* 模态框 */
         .modal-overlay {
             display:none;
             position:fixed;
@@ -474,74 +572,144 @@
             padding:28px 32px;
             border:1px solid var(--border);
         }
-        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+        .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:10px; }
         .modal-header h2 { color:var(--primary); font-size:var(--font-xl); }
-        .modal-close {
-            background:none; border:none; font-size:2.4rem; cursor:pointer; color:var(--text-light); transition:color var(--transition); line-height:1; min-width:56px; min-height:56px; border-radius:50%;
-        }
+        .modal-close { background:none; border:none; font-size:2.6rem; cursor:pointer; color:var(--text-light); transition:color var(--transition); line-height:1; min-width:56px; min-height:56px; border-radius:50%; }
         .modal-close:hover { color:var(--wrong); background:var(--wrong-bg); }
         .manage-toolbar { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:24px; align-items:center; }
-        .poem-edit-item { border:1px solid var(--border); border-radius:var(--radius-sm); padding:20px; background:var(--input-bg); margin-bottom:16px; }
-        .poem-edit-item .field-row { display:flex; gap:14px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
-        .poem-edit-item .field-row label { font-size:var(--font-small); color:var(--text-light); min-width:60px; font-weight:600; }
+        .poem-edit-item { border:1px solid var(--border); border-radius:var(--radius-sm); padding:20px; background:var(--input-bg); margin-bottom:18px; }
+        .poem-edit-item .field-row { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+        .poem-edit-item .field-row label { font-size:0.9rem; color:var(--text-light); min-width:60px; font-weight:600; }
         .poem-edit-item .field-row input, .poem-edit-item .field-row select, .poem-edit-item .field-row textarea {
-            flex:1; padding:12px 16px; border:1.5px solid var(--border); border-radius:10px; font-family:inherit; font-size:var(--font-base); background:var(--card); color:var(--text); min-height:48px;
+            flex:1; padding:10px 14px; border:1.5px solid var(--border); border-radius:8px; font-family:inherit; font-size:var(--font-small); background:var(--card); color:var(--text); min-height:44px;
         }
         .poem-edit-item .field-row textarea { min-height:100px; resize:vertical; }
-        .poem-edit-item .field-row select { cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b5e3c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:36px; }
-        .custom-subcat-input { display:none; }
-        .custom-subcat-input.visible { display:block; }
-        .delete-btn { background:var(--wrong-bg); color:var(--wrong); border:1.5px solid #ffcdd2; border-radius:10px; padding:10px 20px; cursor:pointer; font-size:var(--font-small); transition:all var(--transition); font-family:inherit; }
+        .delete-btn { background:var(--wrong-bg); color:var(--wrong); border:1px solid #ffcdd2; border-radius:8px; padding:8px 20px; cursor:pointer; font-size:0.9rem; transition:all var(--transition); font-family:inherit; }
         .delete-btn:hover { background:var(--wrong); color:#fff; }
 
-        /* ========== 响应式 ========== */
+        .achievement-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(160px,1fr));
+            gap:14px;
+            margin:14px 0;
+        }
+        .achievement-card {
+            background:var(--input-bg);
+            border-radius:var(--radius-sm);
+            padding:14px;
+            text-align:center;
+            border:1px solid var(--border);
+            opacity:0.6;
+            transition:all var(--transition);
+        }
+        .achievement-card.unlocked { opacity:1; border-color:var(--gold); background:var(--correct-bg); }
+        .achievement-card .icon { font-size:2.6rem; }
+        .achievement-card .name { font-weight:600; font-size:1rem; }
+        .achievement-card .desc { font-size:0.8rem; color:var(--text-light); }
+
+        /* 响应式 */
         @media (max-width:1024px) {
             .main-layout { flex-direction:column; }
-            .sidebar { flex:none; width:100%; position:static; max-height:320px; }
-            .poem-btn { white-space:normal; }
-            .card { padding:20px; }
+            .sidebar { flex:none; width:100%; position:static; max-height:400px; }
+            .stats-grid { grid-template-columns:1fr 1fr; }
             .compare-grid { grid-template-columns:1fr; }
         }
         @media (max-width:768px) {
-            body { padding:12px; font-size:15px; }
-            .title-bar h2 { font-size:18px; }
-            .btn { padding:10px 18px; font-size:14px; min-height:42px; }
-            .input-area textarea { min-height:200px; font-size:15px; padding:14px 16px; }
-            .modal-content { padding:16px; }
-            .sidebar { max-height:280px; }
+            body { padding:12px 16px; font-size:18px; }
+            .card { padding:18px; }
+            .sidebar { max-height:340px; }
+            .stats-grid { grid-template-columns:1fr 1fr; gap:10px; }
+            .stat-card .number { font-size:1.6rem; }
+            .title-bar h2 { font-size:20px; }
+            .btn { padding:8px 16px; font-size:0.9rem; min-height:40px; }
+            .input-area textarea { min-height:200px; font-size:18px; }
         }
+        .sidebar::-webkit-scrollbar { width:4px; }
+        .sidebar::-webkit-scrollbar-track { background:var(--bg); }
+        .sidebar::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
     </style>
 </head>
 <body>
-<div class="app-container">
+<div class="app-container" id="app">
     <header>
-        <h1>📜 古诗文默写</h1>
+        <div class="logo">
+            <h1>📜 古诗文默写</h1>
+            <span class="badge-achievement" id="achievementBadge">🏅 0</span>
+            <span class="streak-badge" id="streakBadge">🔥 0天</span>
+        </div>
         <div class="header-actions">
-            <button class="btn-icon" id="themeToggleBtn" aria-label="切换主题">🌓 主题</button>
-            <button class="btn-icon" id="randomBtn" aria-label="随机抽题">🎲 随机</button>
-            <button class="btn-icon" id="speakBtn" aria-label="朗读原文">🔊 朗读</button>
+            <button class="btn-icon" id="themeToggleBtn">🌓 主题</button>
+            <button class="btn-icon" id="randomBtn">🎲 随机</button>
+            <button class="btn-icon" id="speakBtn">🔊 朗读</button>
+            <button class="btn-icon" id="focusToggleBtn">🎯 专注</button>
             <button class="btn-manage" id="openManageBtn">⚙️ 题库</button>
         </div>
     </header>
 
     <div class="main-layout">
         <aside class="sidebar" id="sidebar">
-            <h2>📖 篇目列表</h2>
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 搜索标题或作者..." autocomplete="off">
-                <button class="search-clear" id="searchClearBtn" aria-label="清空搜索">×</button>
+            <div class="sidebar-tabs">
+                <button class="active" data-tab="library">📚 文库</button>
+                <button data-tab="dashboard">📊 仪表盘</button>
+                <button data-tab="review">🧠 复习</button>
             </div>
-            <div class="search-results" id="searchResults"></div>
-            <div id="gradeAccordion"></div>
-            <div class="stats-bar" id="statsBar">
-                <span class="stat-item">📚 总篇目: <span class="stat-value" id="totalPoemsCount">0</span></span>
-                <span class="stat-item">✅ 已掌握: <span class="stat-value" id="masteredCount">0</span></span>
-                <span class="stat-item">📝 默写次数: <span class="stat-value" id="totalAttempts">0</span></span>
+            <!-- 文库面板 -->
+            <div class="sidebar-panel" id="panelLibrary">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 搜索标题/作者..." autocomplete="off">
+                    <button class="search-clear" id="searchClearBtn">×</button>
+                </div>
+                <div class="search-results" id="searchResults"></div>
+                <div id="gradeAccordion"></div>
+            </div>
+            <!-- 仪表盘面板 -->
+            <div class="sidebar-panel hidden" id="panelDashboard">
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card"><div class="number" id="dashTotal">0</div><div class="label">总篇目</div></div>
+                    <div class="stat-card"><div class="number" id="dashMastered">0</div><div class="label">已掌握</div></div>
+                    <div class="stat-card"><div class="number" id="dashAccuracy">0%</div><div class="label">平均正确率</div></div>
+                    <div class="stat-card"><div class="number" id="dashAttempts">0</div><div class="label">练习次数</div></div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">📈 近7天正确率趋势</div>
+                    <canvas id="trendChart" height="130"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">📊 掌握度矩阵（按年级/类别）</div>
+                    <div class="mastery-grid" id="masteryGrid"></div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+                    <button class="btn btn-outline btn-sm" id="exportReportBtn" style="flex:1;">📤 导出报告</button>
+                    <button class="btn btn-outline btn-sm" id="exportProgressBtn" style="flex:1;" title="包含所有默写原文+当前草稿">📦 导出进度</button>
+                    <button class="btn btn-outline btn-sm" id="importProgressBtn" style="flex:1;">📥 导入进度</button>
+                    <input type="file" id="importProgressInput" accept=".json" style="display:none;">
+                </div>
+                <div style="font-size:0.8rem; color:var(--text-light); text-align:center; margin-top:4px;">💡 导出进度包含所有已提交记录 + 当前所有篇目的草稿</div>
+            </div>
+            <!-- 复习面板 -->
+            <div class="sidebar-panel hidden" id="panelReview">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <span style="font-weight:600; color:var(--primary); font-size:1.1rem;">📋 今日复习队列</span>
+                    <button class="btn btn-sm btn-outline" id="refreshReviewBtn">🔄 刷新</button>
+                </div>
+                <div id="reviewQueueContainer">
+                    <div style="color:var(--text-light); text-align:center; padding:24px;">暂无复习推荐，请先进行默写练习。</div>
+                </div>
+                <div style="margin-top:18px; border-top:1px solid var(--border); padding-top:14px;">
+                    <div style="font-weight:600; color:var(--primary); font-size:1.05rem;">🔁 错题本</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                        <span id="wrongCountDisplay" style="font-size:0.95rem; color:var(--text-light);">共 0 个错字</span>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-sm btn-outline" id="reviewWrongBtn">复习错题</button>
+                            <button class="btn btn-sm btn-outline" id="clearWrongBtn">清空</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </aside>
 
         <main class="content-area">
-            <div class="card">
+            <div class="card" id="mainCard">
                 <div class="title-bar">
                     <div>
                         <h2 id="currentTitle">观沧海</h2>
@@ -552,15 +720,21 @@
                         <button class="btn btn-outline btn-sm" id="toggleViewBtn">📊 并排对比</button>
                         <button class="btn btn-outline btn-sm" id="toggleOriginalBtn">📄 原文</button>
                         <button class="btn btn-outline btn-sm" id="clearBtn">🗑️ 清空</button>
+                        <button class="btn btn-outline btn-sm" id="hintBtn">💡 提示</button>
                     </div>
                 </div>
-                <div class="input-area">
-                    <textarea id="inputText" placeholder="在此默写全文… (支持Ctrl+Enter快速检查)"></textarea>
+                <div class="status-bar" id="statusBar">
+                    <span class="item">📝 练习次数: <strong id="practiceCount">0</strong></span>
+                    <span class="item">📊 上次正确率: <strong id="lastAccuracy">-</strong></span>
+                    <span class="item">⏱️ 用时: <strong id="timerDisplay">0s</strong></span>
                 </div>
-                <div class="btn-group" style="margin-top:16px; gap:12px;">
+                <div class="input-area">
+                    <textarea id="inputText" placeholder="在此默写全文… (Ctrl+Enter 快速检查)"></textarea>
+                </div>
+                <div class="btn-group" style="margin-top:14px; gap:10px;">
                     <button class="btn btn-primary" id="checkBtn">✅ 检查默写</button>
                     <button class="btn btn-outline" id="resetBtn">🔄 重新开始</button>
-                    <button class="btn btn-outline btn-sm" id="examModeBtn">📝 考试模式(5篇)</button>
+                    <button class="btn btn-outline btn-sm" id="examModeBtn">📝 考试(5篇)</button>
                 </div>
                 <div class="score-bar" id="scoreBar">
                     <span class="score-text" id="scoreText">正确率：0%</span>
@@ -576,29 +750,17 @@
                     <span id="originalContent"></span>
                 </div>
             </div>
-            <!-- 错题本 -->
-            <div class="card" style="padding:16px 24px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-                    <span style="font-weight:600; color:var(--primary);">📕 错题本</span>
-                    <span id="wrongCountDisplay" style="font-size:var(--font-small); color:var(--text-light);">共 0 个错字</span>
-                    <button class="btn btn-sm btn-outline" id="reviewWrongBtn">🔁 复习错题</button>
-                    <button class="btn btn-sm btn-outline" id="clearWrongBtn">🗑️ 清空错题</button>
-                </div>
-            </div>
         </main>
     </div>
-    <footer style="text-align:center; color:var(--text-light); font-size:0.85rem; padding:16px 0 8px;">
-        ⚠️ 一字一标点都不能错 · 数据自动保存 · 刷新不丢失
+    <footer style="text-align:center; color:var(--text-light); font-size:0.9rem; padding:14px 0 6px;">
+        ⚠️ 一字一标点都不能错 · 数据自动保存 · 智能复习助你掌握
     </footer>
 </div>
 
-<!-- ========== 管理模态框 ========== -->
+<!-- 管理模态框 -->
 <div class="modal-overlay" id="manageModal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h2>📚 题库管理</h2>
-            <button class="modal-close" id="closeManageBtn">&times;</button>
-        </div>
+        <div class="modal-header"><h2>📚 题库管理</h2><button class="modal-close" id="closeManageBtn">&times;</button></div>
         <div class="manage-toolbar">
             <button class="btn btn-primary btn-sm" id="addPoemBtn">➕ 新增</button>
             <button class="btn btn-primary btn-sm" id="saveManageBtn">💾 保存</button>
@@ -608,6 +770,14 @@
             <input type="file" id="importFileInput" accept=".json" style="display:none;">
         </div>
         <div class="poem-edit-list" id="poemEditList"></div>
+    </div>
+</div>
+
+<!-- 成就模态框 -->
+<div class="modal-overlay" id="achievementModal">
+    <div class="modal-content">
+        <div class="modal-header"><h2>🏆 成就</h2><button class="modal-close" id="closeAchievementModal">&times;</button></div>
+        <div class="achievement-grid" id="achievementGrid"></div>
     </div>
 </div>
 
@@ -641,35 +811,13 @@
         // ================================================================
         // 2. 工具 & 存储
         // ================================================================
-        const PRESET_GRADES = ['七年级','八年级','九年级'];
-        const PRESET_VOLUMES = ['上册','下册'];
-        const PRESET_SUBCATEGORIES = ['课内古诗词','课内文言文','课外古诗词诵读','其他'];
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            const d = document.createElement('div');
-            d.textContent = str;
-            return d.innerHTML;
-        }
-        function sanitizeHtml(html) {
-            if (window.DOMPurify) return DOMPurify.sanitize(html);
-            return html;
-        }
-        function debounce(fn, delay) {
-            let timer;
-            return function(...args) {
-                clearTimeout(timer);
-                timer = setTimeout(() => fn.apply(this, args), delay);
-            };
-        }
+        function escapeHtml(str) { if (!str) return ''; const d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
+        function sanitizeHtml(html) { if (window.DOMPurify) return DOMPurify.sanitize(html); return html; }
+        function debounce(fn, delay) { let timer; return function(...args){ clearTimeout(timer); timer=setTimeout(()=>fn.apply(this,args), delay); }; }
 
         const Storage = {
-            get(key, def) {
-                try { const v = localStorage.getItem('poemApp_'+key); return v ? JSON.parse(v) : def; } catch(e){ return def; }
-            },
-            set(key, val) {
-                localStorage.setItem('poemApp_'+key, JSON.stringify(val));
-            }
+            get(key, def) { try { const v=localStorage.getItem('poemApp_'+key); return v?JSON.parse(v):def; } catch(e){ return def; } },
+            set(key, val) { localStorage.setItem('poemApp_'+key, JSON.stringify(val)); }
         };
 
         // ================================================================
@@ -680,55 +828,29 @@
         let currentId = null;
         let expandedGrades = {};
         let expandedVolumes = {};
-        let originalVisible = false;
-        let compareMode = false;
         let theme = 'light';
-        let history = [];
+        let history = [];           // 每条记录含 poemId, timestamp, accuracy, userInput
         let wrongChars = {};
-        let draft = {};
-        let mastered = []; // 已掌握的篇目ID列表
+        let draft = {};            // 草稿：{ poemId: '用户输入的文本' }
+        let mastered = [];
         let examMode = false;
         let examQueue = [];
         let examResults = [];
         let isSpeaking = false;
+        let focusMode = false;
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let timerRunning = false;
 
-        // DOM
-        const $ = (s) => document.querySelector(s);
-        const $$ = (s) => document.querySelectorAll(s);
-
-        const gradeAccordion = $('#gradeAccordion');
-        const searchInput = $('#searchInput');
-        const searchClearBtn = $('#searchClearBtn');
-        const searchResults = $('#searchResults');
-        const currentTitle = $('#currentTitle');
-        const currentMeta = $('#currentMeta');
-        const inputText = $('#inputText');
-        const checkBtn = $('#checkBtn');
-        const resetBtn = $('#resetBtn');
-        const clearBtn = $('#clearBtn');
-        const toggleOriginalBtn = $('#toggleOriginalBtn');
-        const toggleViewBtn = $('#toggleViewBtn');
-        const masteredBtn = $('#masteredBtn');
-        const resultArea = $('#resultArea');
-        const compareGrid = $('#compareGrid');
-        const scoreBar = $('#scoreBar');
-        const scoreText = $('#scoreText');
-        const scoreDetail = $('#scoreDetail');
-        const progressFill = $('#progressFill');
-        const originalText = $('#originalText');
-        const originalContent = $('#originalContent');
-        const manageModal = $('#manageModal');
-        const poemEditList = $('#poemEditList');
-        const totalPoemsCount = $('#totalPoemsCount');
-        const masteredCount = $('#masteredCount');
-        const totalAttempts = $('#totalAttempts');
-        const wrongCountDisplay = $('#wrongCountDisplay');
-        const themeToggleBtn = $('#themeToggleBtn');
-        const randomBtn = $('#randomBtn');
-        const speakBtn = $('#speakBtn');
-        const examModeBtn = $('#examModeBtn');
-        const reviewWrongBtn = $('#reviewWrongBtn');
-        const clearWrongBtn = $('#clearWrongBtn');
+        const ACHIEVEMENTS = [
+            { id:'first_ten', name:'初出茅庐', desc:'完成10次默写', icon:'🌱', check:()=>history.length>=10 },
+            { id:'master_ten', name:'十篇精通', desc:'掌握10篇', icon:'📖', check:()=>mastered.length>=10 },
+            { id:'perfect_five', name:'百炼成钢', desc:'正确率100%达5次', icon:'💪', check:()=>history.filter(h=>h.accuracy===100).length>=5 },
+            { id:'streak_seven', name:'勤学不辍', desc:'连续学习7天', icon:'🔥', check:()=>getConsecutiveDays()>=7 },
+            { id:'all_mastered', name:'诗词达人', desc:'掌握全部篇目', icon:'🏅', check:()=>mastered.length===poems.length && poems.length>0 },
+            { id:'review_master', name:'温故知新', desc:'完成10次复习推荐', icon:'🔄', check:()=>Storage.get('reviewCompleted',0)>=10 }
+        ];
+        let unlockedAchievements = Storage.get('achievements', []);
 
         // ================================================================
         // 4. 核心逻辑
@@ -744,13 +866,17 @@
             wrongChars = Storage.get('wrongChars', {});
             draft = Storage.get('draft', {});
             mastered = Storage.get('mastered', []);
+            unlockedAchievements = Storage.get('achievements', []);
             applyTheme(theme);
             renderSidebar();
             if (currentId && poems.find(p=>p.id===currentId)) selectPoem(currentId);
             else if (poems.length) selectPoem(poems[0].id);
-            updateStats();
+            updateAllStats();
             updateWrongDisplay();
             updateMasteredBtn();
+            renderReviewQueue();
+            renderAchievements();
+            checkAchievements();
         }
 
         function saveState() {
@@ -763,6 +889,7 @@
             Storage.set('wrongChars', wrongChars);
             Storage.set('draft', draft);
             Storage.set('mastered', mastered);
+            Storage.set('achievements', unlockedAchievements);
         }
 
         function applyTheme(t) {
@@ -773,7 +900,7 @@
             } else {
                 document.documentElement.setAttribute('data-theme', t);
             }
-            themeToggleBtn.textContent = t === 'dark' ? '☀️ 日间' : t === 'light' ? '🌓 系统' : '🌙 暗色';
+            document.getElementById('themeToggleBtn').textContent = t === 'dark' ? '☀️ 日间' : t === 'light' ? '🌓 系统' : '🌙 暗色';
             saveState();
         }
 
@@ -784,110 +911,112 @@
         }
 
         function selectPoem(id) {
-            const poem = poems.find(p => p.id === id);
+            const poem = poems.find(p=>p.id===id);
             if (!poem) return;
             currentId = id;
-            currentTitle.textContent = poem.title;
-            currentMeta.textContent = `${poem.author}  |  ${poem.grade} ${poem.volume} · ${poem.subcategory}`;
-            // 恢复草稿（如果存在）
+            document.getElementById('currentTitle').textContent = poem.title;
+            document.getElementById('currentMeta').textContent = `${poem.author}  |  ${poem.grade} ${poem.volume} · ${poem.subcategory}`;
+            // 恢复草稿
             if (draft[id]) {
-                inputText.value = draft[id];
+                document.getElementById('inputText').value = draft[id];
             } else {
-                inputText.value = '';
+                document.getElementById('inputText').value = '';
             }
-            resultArea.classList.remove('visible');
-            resultArea.innerHTML = '';
-            compareGrid.classList.remove('visible');
-            compareGrid.innerHTML = '';
-            scoreBar.classList.remove('visible');
-            originalText.classList.remove('visible');
-            originalVisible = false;
-            toggleOriginalBtn.textContent = '📄 原文';
-            toggleViewBtn.textContent = '📊 并排对比';
-            compareMode = false;
+            document.getElementById('resultArea').classList.remove('visible');
+            document.getElementById('resultArea').innerHTML = '';
+            document.getElementById('compareGrid').classList.remove('visible');
+            document.getElementById('compareGrid').innerHTML = '';
+            document.getElementById('scoreBar').classList.remove('visible');
+            document.getElementById('originalText').classList.remove('visible');
+            document.getElementById('toggleOriginalBtn').textContent = '📄 原文';
+            document.getElementById('toggleViewBtn').textContent = '📊 并排对比';
             updateMasteredBtn();
+            updateStatusBar();
             renderSidebar();
             saveState();
-            inputText.focus();
+            document.getElementById('inputText').focus();
+            resetTimer();
         }
 
-        // ---- 掌握标记 ----
+        // ---- 草稿自动保存 ----
+        function saveDraft() {
+            if (currentId) {
+                const val = document.getElementById('inputText').value;
+                if (val.trim()) {
+                    draft[currentId] = val;
+                } else {
+                    delete draft[currentId];
+                }
+                saveState();
+            }
+        }
+        const debouncedDraft = debounce(saveDraft, 500);
+
+        // ---- 掌握 ----
         function toggleMastered() {
             if (!currentId) return;
             const idx = mastered.indexOf(currentId);
-            if (idx === -1) {
-                mastered.push(currentId);
-            } else {
-                mastered.splice(idx, 1);
-            }
+            if (idx === -1) mastered.push(currentId);
+            else mastered.splice(idx, 1);
             saveState();
             updateMasteredBtn();
             renderSidebar();
-            updateStats();
+            updateAllStats();
+            checkAchievements();
         }
 
         function updateMasteredBtn() {
             if (!currentId) return;
             const isMastered = mastered.includes(currentId);
-            masteredBtn.textContent = isMastered ? '⭐ 已掌握' : '⭐ 标记掌握';
-            masteredBtn.classList.toggle('active', isMastered);
+            const btn = document.getElementById('masteredBtn');
+            btn.textContent = isMastered ? '⭐ 已掌握' : '⭐ 标记掌握';
+            btn.classList.toggle('active', isMastered);
         }
 
-        // ---- 比对算法 ----
+        // ---- diff ----
         function diffChars(origArr, userArr) {
-            const m = origArr.length, n = userArr.length;
-            const dp = Array.from({length: m+1}, () => new Uint16Array(n+1));
-            for (let i=0; i<=m; i++) dp[i][0] = i;
-            for (let j=0; j<=n; j++) dp[0][j] = j;
-            for (let i=1; i<=m; i++) {
-                for (let j=1; j<=n; j++) {
-                    const cost = origArr[i-1] === userArr[j-1] ? 0 : 1;
-                    dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
+            const m=origArr.length, n=userArr.length;
+            const dp=Array.from({length:m+1}, ()=>new Uint16Array(n+1));
+            for(let i=0;i<=m;i++) dp[i][0]=i;
+            for(let j=0;j<=n;j++) dp[0][j]=j;
+            for(let i=1;i<=m;i++) {
+                for(let j=1;j<=n;j++) {
+                    const cost=origArr[i-1]===userArr[j-1]?0:1;
+                    dp[i][j]=Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+cost);
                 }
             }
-            const ops = [];
-            let i=m, j=n;
-            while (i>0 || j>0) {
-                if (i>0 && j>0 && origArr[i-1] === userArr[j-1]) {
-                    ops.push({type:'equal', char:origArr[i-1]});
-                    i--; j--;
-                } else if (i>0 && j>0 && dp[i][j] === dp[i-1][j-1] + 1) {
-                    ops.push({type:'replace', origChar:origArr[i-1], userChar:userArr[j-1]});
-                    i--; j--;
-                } else if (i>0 && dp[i][j] === dp[i-1][j] + 1) {
-                    ops.push({type:'delete', char:origArr[i-1]});
-                    i--;
-                } else {
-                    ops.push({type:'insert', char:userArr[j-1]});
-                    j--;
-                }
+            const ops=[]; let i=m, j=n;
+            while(i>0||j>0) {
+                if(i>0&&j>0&&origArr[i-1]===userArr[j-1]) { ops.push({type:'equal', char:origArr[i-1]}); i--; j--; }
+                else if(i>0&&j>0&&dp[i][j]===dp[i-1][j-1]+1) { ops.push({type:'replace', origChar:origArr[i-1], userChar:userArr[j-1]}); i--; j--; }
+                else if(i>0&&dp[i][j]===dp[i-1][j]+1) { ops.push({type:'delete', char:origArr[i-1]}); i--; }
+                else { ops.push({type:'insert', char:userArr[j-1]}); j--; }
             }
             ops.reverse();
             let correct=0, replaces=0, deletes=0, inserts=0;
-            const wrongList = [];
-            ops.forEach(op => {
-                if (op.type === 'equal') correct++;
-                else if (op.type === 'replace') { replaces++; wrongList.push({ wrong: op.userChar, correct: op.origChar }); }
-                else if (op.type === 'delete') { deletes++; wrongList.push({ wrong: '【漏】', correct: op.char }); }
-                else if (op.type === 'insert') inserts++;
+            const wrongList=[];
+            ops.forEach(op=>{
+                if(op.type==='equal') correct++;
+                else if(op.type==='replace') { replaces++; wrongList.push({wrong:op.userChar, correct:op.origChar}); }
+                else if(op.type==='delete') { deletes++; wrongList.push({wrong:'【漏】', correct:op.char}); }
+                else if(op.type==='insert') inserts++;
             });
-            const total = origArr.length;
-            const accuracy = total > 0 ? Math.round((correct/total)*1000)/10 : 0;
+            const total=origArr.length;
+            const accuracy=total>0?Math.round((correct/total)*1000)/10:0;
             return { ops, correct, total, accuracy, replaces, deletes, inserts, wrongList };
         }
 
-        // ---- 检查默写 ----
+        // ---- 检查 ----
         function checkDictation() {
-            const poem = poems.find(p => p.id === currentId);
+            const poem = poems.find(p=>p.id===currentId);
             if (!poem) { alert('请选择一篇诗文'); return; }
-            const user = inputText.value;
+            const user = document.getElementById('inputText').value;
             const orig = poem.text;
-            if (user.trim().length === 0) { alert('请先输入默写内容！'); return; }
-            const origArr = Array.from(orig);
-            const userArr = Array.from(user);
+            if (user.trim().length===0) { alert('请先输入默写内容！'); return; }
+            const origArr=Array.from(orig), userArr=Array.from(user);
             const result = diffChars(origArr, userArr);
 
-            // 记录历史
+            // 记录历史，包含用户输入全文
             const record = {
                 poemId: poem.id,
                 timestamp: Date.now(),
@@ -895,173 +1024,267 @@
                 replaces: result.replaces,
                 deletes: result.deletes,
                 inserts: result.inserts,
-                totalChars: result.total
+                totalChars: result.total,
+                wrongDetails: result.wrongList,
+                userInput: user,
+                poemTitle: poem.title,
+                poemAuthor: poem.author
             };
             history.push(record);
-            if (history.length > 1000) history = history.slice(-1000);
+            if (history.length>500) history = history.slice(-500);
 
-            // 更新错题本
-            result.wrongList.forEach(w => {
-                const key = w.wrong === '【漏】' ? '【漏】'+w.correct : w.wrong;
-                if (!wrongChars[key]) wrongChars[key] = { count:0, contexts:[] };
+            result.wrongList.forEach(w=>{
+                const key = w.wrong==='【漏】' ? '【漏】'+w.correct : w.wrong;
+                if(!wrongChars[key]) wrongChars[key]={count:0, contexts:[]};
                 wrongChars[key].count += 1;
-                if (wrongChars[key].contexts.length < 5) wrongChars[key].contexts.push(w.correct);
+                if(wrongChars[key].contexts.length<5) wrongChars[key].contexts.push(w.correct);
             });
 
-            // 注意：此处不删除草稿，保留用户输入
+            // 检查后不清除草稿，保留用户输入
             saveState();
             displayResult(result);
-            updateStats();
+            updateAllStats();
             updateWrongDisplay();
-            // 如果正确率100%，自动标记为掌握？可选，但用户可手动标记
-            // 这里不自动标记，让用户自己决定
+            updateStatusBar();
+            checkAchievements();
+            renderReviewQueue();
         }
 
         function displayResult(result) {
             const { ops, correct, total, accuracy, replaces, deletes, inserts } = result;
-            // 标记视图
-            let html = '';
-            for (const op of ops) {
-                if (op.type === 'equal') {
-                    if (op.char === '\n') html += '<br>';
-                    else html += `<span class="char-correct">${escapeHtml(op.char)}</span>`;
-                } else if (op.type === 'replace') {
-                    if (op.origChar === '\n') html += '<br>';
-                    else html += `<span class="char-wrong" title="原文：${escapeHtml(op.origChar)} → 你写：${escapeHtml(op.userChar)}">${escapeHtml(op.userChar)}</span>`;
-                } else if (op.type === 'delete') {
-                    if (op.char === '\n') html += '<br>';
-                    else html += `<span class="char-missing" title="遗漏：${escapeHtml(op.char)}">${escapeHtml(op.char)}</span>`;
-                } else if (op.type === 'insert') {
-                    if (op.char === '\n') html += '<br>';
-                    else html += `<span class="char-extra" title="多余：${escapeHtml(op.char)}">${escapeHtml(op.char)}</span>`;
+            let html='';
+            for(const op of ops) {
+                if(op.type==='equal') {
+                    if(op.char==='\n') html+='<br>';
+                    else html+=`<span class="char-correct">${escapeHtml(op.char)}</span>`;
+                } else if(op.type==='replace') {
+                    if(op.origChar==='\n') html+='<br>';
+                    else html+=`<span class="char-wrong" title="原文：${escapeHtml(op.origChar)} → 你写：${escapeHtml(op.userChar)}">${escapeHtml(op.userChar)}</span>`;
+                } else if(op.type==='delete') {
+                    if(op.char==='\n') html+='<br>';
+                    else html+=`<span class="char-missing" title="遗漏：${escapeHtml(op.char)}">${escapeHtml(op.char)}</span>`;
+                } else if(op.type==='insert') {
+                    if(op.char==='\n') html+='<br>';
+                    else html+=`<span class="char-extra" title="多余：${escapeHtml(op.char)}">${escapeHtml(op.char)}</span>`;
                 }
             }
-            resultArea.innerHTML = sanitizeHtml(html);
-            resultArea.classList.add('visible');
-            resultArea.scrollTop = 0;
-            scoreBar.classList.add('visible');
-            scoreText.textContent = `正确率：${accuracy}%`;
-            scoreDetail.textContent = `正确 ${correct} / 共 ${total} 字；替换 ${replaces}，缺失 ${deletes}，多余 ${inserts}`;
-            progressFill.style.width = `${accuracy}%`;
+            const area = document.getElementById('resultArea');
+            area.innerHTML = sanitizeHtml(html);
+            area.classList.add('visible');
+            area.scrollTop=0;
+            const bar = document.getElementById('scoreBar');
+            bar.classList.add('visible');
+            document.getElementById('scoreText').textContent = `正确率：${accuracy}%`;
+            document.getElementById('scoreDetail').textContent = `正确 ${correct} / 共 ${total} 字；替换 ${replaces}，缺失 ${deletes}，多余 ${inserts}`;
+            document.getElementById('progressFill').style.width = `${accuracy}%`;
 
-            if (compareMode) {
+            if (document.getElementById('toggleViewBtn').textContent.includes('并排')) {
                 renderCompare(result);
             } else {
-                compareGrid.classList.remove('visible');
+                document.getElementById('compareGrid').classList.remove('visible');
             }
-            resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            area.scrollIntoView({ behavior:'smooth', block:'nearest' });
+            if (accuracy===100) {
+                const emojis = ['🎉', '✨', '🌟', '👏'];
+                const e = emojis[Math.floor(Math.random()*emojis.length)];
+                setTimeout(()=>{ 
+                    const badge = document.getElementById('achievementBadge');
+                    badge.textContent = e + ' 完美!';
+                    setTimeout(()=>{ badge.textContent = '🏅 ' + unlockedAchievements.length; }, 2000);
+                }, 300);
+            }
         }
 
         function renderCompare(result) {
-            const poem = poems.find(p => p.id === currentId);
+            const poem = poems.find(p=>p.id===currentId);
             if (!poem) return;
             const origLines = poem.text.split('\n');
-            const userLines = inputText.value.split('\n');
+            const userLines = document.getElementById('inputText').value.split('\n');
             const maxLines = Math.max(origLines.length, userLines.length);
-            let origHtml = '', userHtml = '';
-            for (let i=0; i<maxLines; i++) {
-                const o = origLines[i] || '';
-                const u = userLines[i] || '';
-                const oArr = Array.from(o);
-                const uArr = Array.from(u);
-                const localResult = diffChars(oArr, uArr);
-                let oLineHtml = '', uLineHtml = '';
-                let oIdx=0, uIdx=0;
-                for (const op of localResult.ops) {
-                    if (op.type === 'equal') {
-                        oLineHtml += escapeHtml(op.char);
-                        uLineHtml += escapeHtml(op.char);
-                        oIdx++; uIdx++;
-                    } else if (op.type === 'replace') {
-                        oLineHtml += `<span class="char-correct">${escapeHtml(op.origChar)}</span>`;
-                        uLineHtml += `<span class="char-wrong" title="原文：${escapeHtml(op.origChar)} → 你写：${escapeHtml(op.userChar)}">${escapeHtml(op.userChar)}</span>`;
-                        oIdx++; uIdx++;
-                    } else if (op.type === 'delete') {
-                        oLineHtml += `<span class="char-missing">${escapeHtml(op.char)}</span>`;
-                        uLineHtml += `<span style="opacity:0.3;">_</span>`;
-                        oIdx++;
-                    } else if (op.type === 'insert') {
-                        oLineHtml += `<span style="opacity:0.3;">_</span>`;
-                        uLineHtml += `<span class="char-extra">${escapeHtml(op.char)}</span>`;
-                        uIdx++;
-                    }
+            let origHtml='', userHtml='';
+            for(let i=0;i<maxLines;i++){
+                const o=origLines[i]||'', u=userLines[i]||'';
+                const oArr=Array.from(o), uArr=Array.from(u);
+                const localResult=diffChars(oArr,uArr);
+                let oLine='', uLine='';
+                for(const op of localResult.ops){
+                    if(op.type==='equal'){ oLine+=escapeHtml(op.char); uLine+=escapeHtml(op.char); }
+                    else if(op.type==='replace'){ oLine+=`<span class="char-correct">${escapeHtml(op.origChar)}</span>`; uLine+=`<span class="char-wrong">${escapeHtml(op.userChar)}</span>`; }
+                    else if(op.type==='delete'){ oLine+=`<span class="char-missing">${escapeHtml(op.char)}</span>`; uLine+=`<span style="opacity:0.3;">_</span>`; }
+                    else if(op.type==='insert'){ oLine+=`<span style="opacity:0.3;">_</span>`; uLine+=`<span class="char-extra">${escapeHtml(op.char)}</span>`; }
                 }
-                origHtml += `<div class="line">${oLineHtml || '&nbsp;'}</div>`;
-                userHtml += `<div class="line">${uLineHtml || '&nbsp;'}</div>`;
+                origHtml+=`<div class="line">${oLine||'&nbsp;'}</div>`;
+                userHtml+=`<div class="line">${uLine||'&nbsp;'}</div>`;
             }
-            compareGrid.innerHTML = `
-                <div class="compare-col"><h4>📖 原文</h4>${origHtml}</div>
-                <div class="compare-col"><h4>✍️ 你的默写</h4>${userHtml}</div>
-            `;
-            compareGrid.classList.add('visible');
+            const grid=document.getElementById('compareGrid');
+            grid.innerHTML=`<div class="compare-col"><h4>📖 原文</h4>${origHtml}</div><div class="compare-col"><h4>✍️ 你的默写</h4>${userHtml}</div>`;
+            grid.classList.add('visible');
         }
 
         function toggleCompare() {
-            compareMode = !compareMode;
-            toggleViewBtn.textContent = compareMode ? '📄 标记视图' : '📊 并排对比';
-            if (compareMode) {
-                if (resultArea.classList.contains('visible')) {
-                    const poem = poems.find(p => p.id === currentId);
-                    if (poem) {
-                        const origArr = Array.from(poem.text);
-                        const userArr = Array.from(inputText.value);
-                        const result = diffChars(origArr, userArr);
-                        renderCompare(result);
-                    }
-                } else {
-                    // 无结果时显示原文与当前输入
-                    const poem = poems.find(p => p.id === currentId);
-                    if (poem) {
-                        const origLines = poem.text.split('\n');
-                        const userLines = inputText.value.split('\n');
-                        const maxLines = Math.max(origLines.length, userLines.length);
-                        let oHtml='', uHtml='';
-                        for (let i=0; i<maxLines; i++) {
-                            oHtml += `<div class="line">${escapeHtml(origLines[i] || '')}</div>`;
-                            uHtml += `<div class="line">${escapeHtml(userLines[i] || '')}</div>`;
-                        }
-                        compareGrid.innerHTML = `
-                            <div class="compare-col"><h4>📖 原文</h4>${oHtml}</div>
-                            <div class="compare-col"><h4>✍️ 你的默写</h4>${uHtml}</div>
-                        `;
-                        compareGrid.classList.add('visible');
-                    }
-                }
+            const btn = document.getElementById('toggleViewBtn');
+            const isCompare = btn.textContent.includes('并排');
+            if (isCompare) {
+                btn.textContent = '📄 标记视图';
+                document.getElementById('compareGrid').classList.remove('visible');
             } else {
-                compareGrid.classList.remove('visible');
+                btn.textContent = '📊 并排对比';
+                const poem = poems.find(p=>p.id===currentId);
+                if (poem) {
+                    const origArr=Array.from(poem.text), userArr=Array.from(document.getElementById('inputText').value);
+                    const result = diffChars(origArr, userArr);
+                    renderCompare(result);
+                }
             }
         }
 
         function toggleOriginal() {
-            const poem = poems.find(p => p.id === currentId);
-            if (!poem) return;
-            if (!originalVisible) {
-                originalContent.textContent = poem.text;
-                originalText.classList.add('visible');
-                toggleOriginalBtn.textContent = '🙈 隐藏';
-                originalVisible = true;
+            const poem=poems.find(p=>p.id===currentId);
+            if(!poem) return;
+            const el=document.getElementById('originalText');
+            const btn=document.getElementById('toggleOriginalBtn');
+            if(el.classList.contains('visible')){
+                el.classList.remove('visible');
+                btn.textContent='📄 原文';
             } else {
-                originalText.classList.remove('visible');
-                toggleOriginalBtn.textContent = '📄 原文';
-                originalVisible = false;
+                document.getElementById('originalContent').textContent=poem.text;
+                el.classList.add('visible');
+                btn.textContent='🙈 隐藏';
             }
         }
 
         function clearAll() {
-            inputText.value = '';
-            resultArea.classList.remove('visible');
-            resultArea.innerHTML = '';
-            scoreBar.classList.remove('visible');
-            compareGrid.classList.remove('visible');
-            compareGrid.innerHTML = '';
+            document.getElementById('inputText').value='';
+            document.getElementById('resultArea').classList.remove('visible');
+            document.getElementById('resultArea').innerHTML='';
+            document.getElementById('scoreBar').classList.remove('visible');
+            document.getElementById('compareGrid').classList.remove('visible');
+            document.getElementById('compareGrid').innerHTML='';
             delete draft[currentId];
             saveState();
-            inputText.focus();
+            resetTimer();
+            document.getElementById('inputText').focus();
         }
 
-        function resetPoem() {
-            clearAll();
-            if (currentId) selectPoem(currentId);
+        function resetPoem() { clearAll(); if(currentId) selectPoem(currentId); }
+
+        function giveHint() {
+            const poem=poems.find(p=>p.id===currentId);
+            if(!poem) return;
+            const text = poem.text;
+            const user = document.getElementById('inputText').value;
+            const hintChars = Array.from(text);
+            const userChars = Array.from(user);
+            let pos = 0;
+            while (pos < hintChars.length && pos < userChars.length && hintChars[pos]===userChars[pos]) pos++;
+            if (pos >= hintChars.length) { alert('你已经写完整了！继续加油！'); return; }
+            const hintChar = hintChars[pos];
+            if (hintChar === '\n') {
+                let nextLine = '';
+                let idx = pos+1;
+                while (idx < hintChars.length && hintChars[idx] !== '\n') { nextLine += hintChars[idx]; idx++; }
+                alert(`💡 提示：下一句开头是 “${nextLine.slice(0, 10)}...”`);
+            } else {
+                alert(`💡 提示：当前位置（第${pos+1}字）应为 “${hintChar}”`);
+            }
+        }
+
+        function startTimer() {
+            if (timerRunning) return;
+            timerRunning = true;
+            timerInterval = setInterval(()=>{
+                timerSeconds++;
+                document.getElementById('timerDisplay').textContent = timerSeconds + 's';
+            }, 1000);
+        }
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerSeconds = 0;
+            document.getElementById('timerDisplay').textContent = '0s';
+        }
+        document.getElementById('inputText').addEventListener('input', function() {
+            if (!timerRunning && this.value.length > 0) startTimer();
+            if (this.value.length === 0) resetTimer();
+        });
+
+        function startExam() {
+            if (poems.length < 5) { alert('题库少于5篇，无法考试'); return; }
+            const shuffled = [...poems].sort(()=>Math.random()-0.5);
+            examQueue = shuffled.slice(0,5);
+            examResults = [];
+            examMode = true;
+            alert(`📝 考试模式：共 ${examQueue.length} 篇，请依次默写！`);
+            selectPoem(examQueue[0].id);
+            document.getElementById('examModeBtn').textContent = `📝 考试中 (1/${examQueue.length})`;
+        }
+
+        function handleExamCheck() {
+            if (!examMode || !examQueue.length) return;
+            const poem=poems.find(p=>p.id===currentId);
+            if(!poem) return;
+            const user=document.getElementById('inputText').value;
+            if(user.trim().length===0){ alert('请先输入默写内容！'); return; }
+            const result=diffChars(Array.from(poem.text), Array.from(user));
+            examResults.push({ title: poem.title, accuracy: result.accuracy });
+            displayResult(result);
+            const record = {
+                poemId: poem.id, timestamp: Date.now(), accuracy: result.accuracy,
+                replaces: result.replaces, deletes: result.deletes, inserts: result.inserts,
+                totalChars: result.total, wrongDetails: result.wrongList,
+                userInput: user, poemTitle: poem.title, poemAuthor: poem.author
+            };
+            history.push(record);
+            if (history.length>500) history = history.slice(-500);
+            saveState();
+            updateAllStats();
+            const idx = examResults.length;
+            if (idx < examQueue.length) {
+                alert(`✅ 第 ${idx} 篇完成！正确率 ${result.accuracy}%。点击确定继续下一篇。`);
+                selectPoem(examQueue[idx].id);
+                document.getElementById('examModeBtn').textContent = `📝 考试中 (${idx+1}/${examQueue.length})`;
+            } else {
+                examMode = false;
+                const avg = examResults.reduce((s,r)=>s+r.accuracy,0)/examResults.length;
+                let summary = `📊 考试结束！\n平均正确率：${avg.toFixed(1)}%\n\n`;
+                examResults.forEach((r,i)=>{ summary+=`${i+1}. ${r.title} : ${r.accuracy}%\n`; });
+                alert(summary);
+                document.getElementById('examModeBtn').textContent = '📝 考试(5篇)';
+                examQueue=[]; examResults=[];
+                if(poems.length) selectPoem(poems[0].id);
+            }
+        }
+
+        function randomPoem() { if(!poems.length) return; selectPoem(poems[Math.floor(Math.random()*poems.length)].id); }
+        function speakPoem() {
+            const poem=poems.find(p=>p.id===currentId);
+            if(!poem) return;
+            if(isSpeaking){ window.speechSynthesis?.cancel(); isSpeaking=false; document.getElementById('speakBtn').textContent='🔊 朗读'; return; }
+            if(!window.speechSynthesis){ alert('浏览器不支持语音'); return; }
+            const utter=new SpeechSynthesisUtterance(poem.text);
+            utter.lang='zh-CN'; utter.rate=0.9; utter.pitch=1;
+            isSpeaking=true; document.getElementById('speakBtn').textContent='🔊 停止';
+            utter.onend=()=>{ isSpeaking=false; document.getElementById('speakBtn').textContent='🔊 朗读'; };
+            utter.onerror=()=>{ isSpeaking=false; document.getElementById('speakBtn').textContent='🔊 朗读'; };
+            window.speechSynthesis.speak(utter);
+        }
+
+        function toggleFocus() {
+            focusMode = !focusMode;
+            document.body.classList.toggle('focus-mode', focusMode);
+            document.getElementById('focusToggleBtn').textContent = focusMode ? '🎯 退出' : '🎯 专注';
+        }
+
+        function updateStatusBar() {
+            if (!currentId) return;
+            const poemHist = history.filter(h=>h.poemId===currentId);
+            document.getElementById('practiceCount').textContent = poemHist.length;
+            if (poemHist.length) {
+                const last = poemHist[poemHist.length-1];
+                document.getElementById('lastAccuracy').textContent = last.accuracy + '%';
+            } else {
+                document.getElementById('lastAccuracy').textContent = '-';
+            }
         }
 
         // ================================================================
@@ -1069,46 +1292,39 @@
         // ================================================================
         function renderSidebar() {
             const validGrades = new Set(poems.map(p=>p.grade));
-            Object.keys(expandedGrades).forEach(g => { if (!validGrades.has(g)) delete expandedGrades[g]; });
-            const gradeGroups = {};
-            poems.forEach(p => {
-                if (!gradeGroups[p.grade]) gradeGroups[p.grade] = [];
-                gradeGroups[p.grade].push(p);
-            });
-            let html = '';
-            for (const [gradeName, gradePoems] of Object.entries(gradeGroups)) {
-                const hasCurrent = gradePoems.some(p=>p.id===currentId);
-                const isExpanded = expandedGrades[gradeName] !== undefined ? expandedGrades[gradeName] : hasCurrent;
-                expandedGrades[gradeName] = isExpanded;
-                const volumeGroups = {};
-                gradePoems.forEach(p => {
-                    if (!volumeGroups[p.volume]) volumeGroups[p.volume] = [];
-                    volumeGroups[p.volume].push(p);
-                });
-                let volumesHtml = '';
-                for (const [volName, volPoems] of Object.entries(volumeGroups)) {
-                    const volKey = gradeName + '/' + volName;
-                    const volHasCurrent = volPoems.some(p=>p.id===currentId);
-                    const volExpanded = expandedVolumes[volKey] !== undefined ? expandedVolumes[volKey] : (isExpanded && volHasCurrent);
-                    expandedVolumes[volKey] = volExpanded;
-                    const subcatGroups = {};
-                    volPoems.forEach(p => {
-                        if (!subcatGroups[p.subcategory]) subcatGroups[p.subcategory] = [];
-                        subcatGroups[p.subcategory].push(p);
-                    });
-                    let subcatHtml = '';
-                    for (const [subName, subPoems] of Object.entries(subcatGroups)) {
-                        subcatHtml += `<div class="subcategory-title">${escapeHtml(subName)}</div><ul class="poem-list">`;
-                        subPoems.forEach(p => {
-                            const isMastered = mastered.includes(p.id);
-                            subcatHtml += `<li><button class="poem-btn ${p.id===currentId?'active':''}" data-id="${p.id}" title="${escapeHtml(p.title)}">
+            Object.keys(expandedGrades).forEach(g=>{ if(!validGrades.has(g)) delete expandedGrades[g]; });
+            const gradeGroups={};
+            poems.forEach(p=>{ if(!gradeGroups[p.grade]) gradeGroups[p.grade]=[]; gradeGroups[p.grade].push(p); });
+            let html='';
+            for(const [gradeName, gradePoems] of Object.entries(gradeGroups)){
+                const hasCurrent=gradePoems.some(p=>p.id===currentId);
+                const isExpanded=expandedGrades[gradeName]!==undefined?expandedGrades[gradeName]:hasCurrent;
+                expandedGrades[gradeName]=isExpanded;
+                const volumeGroups={};
+                gradePoems.forEach(p=>{ if(!volumeGroups[p.volume]) volumeGroups[p.volume]=[]; volumeGroups[p.volume].push(p); });
+                let volumesHtml='';
+                for(const [volName, volPoems] of Object.entries(volumeGroups)){
+                    const volKey=gradeName+'/'+volName;
+                    const volHasCurrent=volPoems.some(p=>p.id===currentId);
+                    const volExpanded=expandedVolumes[volKey]!==undefined?expandedVolumes[volKey]:(isExpanded&&volHasCurrent);
+                    expandedVolumes[volKey]=volExpanded;
+                    const subcatGroups={};
+                    volPoems.forEach(p=>{ if(!subcatGroups[p.subcategory]) subcatGroups[p.subcategory]=[]; subcatGroups[p.subcategory].push(p); });
+                    let subcatHtml='';
+                    for(const [subName, subPoems] of Object.entries(subcatGroups)){
+                        subcatHtml+=`<div class="subcategory-title">${escapeHtml(subName)}</div><ul class="poem-list">`;
+                        subPoems.forEach(p=>{
+                            const isMastered=mastered.includes(p.id);
+                            const wrongCount = history.filter(h=>h.poemId===p.id && h.accuracy<100).length;
+                            subcatHtml+=`<li><button class="poem-btn ${p.id===currentId?'active':''}" data-id="${p.id}">
                                 <span>${escapeHtml(p.title)}</span>
-                                ${isMastered ? '<span class="mastered-star">⭐</span>' : ''}
+                                ${isMastered?'<span class="mastered-star">⭐</span>':''}
+                                ${wrongCount>0?`<span class="wrong-badge">${wrongCount}</span>`:''}
                             </button></li>`;
                         });
-                        subcatHtml += `</ul>`;
+                        subcatHtml+='</ul>';
                     }
-                    volumesHtml += `
+                    volumesHtml+=`
                         <div class="volume-group ${volExpanded?'expanded':'collapsed'}">
                             <button class="volume-header" data-volume="${escapeHtml(volName)}" data-grade="${escapeHtml(gradeName)}">
                                 <span class="arrow ${volExpanded?'expanded':''}">▶</span>
@@ -1118,7 +1334,7 @@
                             <div class="volume-body">${subcatHtml}</div>
                         </div>`;
                 }
-                html += `
+                html+=`
                     <div class="grade-group ${isExpanded?'expanded':'collapsed'}" data-grade="${escapeHtml(gradeName)}">
                         <button class="grade-header" data-grade="${escapeHtml(gradeName)}">
                             <span class="arrow ${isExpanded?'expanded':''}">▶</span>
@@ -1128,125 +1344,324 @@
                         <div class="grade-body">${volumesHtml}</div>
                     </div>`;
             }
-            gradeAccordion.innerHTML = html;
-            // 事件绑定
-            document.querySelectorAll('.grade-header').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const g = e.currentTarget.dataset.grade;
-                    expandedGrades[g] = !expandedGrades[g];
+            document.getElementById('gradeAccordion').innerHTML=html;
+            document.querySelectorAll('.grade-header').forEach(btn=>{
+                btn.addEventListener('click', function(){
+                    const g=this.dataset.grade;
+                    expandedGrades[g]=!expandedGrades[g];
                     renderSidebar(); saveState();
                 });
             });
-            document.querySelectorAll('.volume-header').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.volume-header').forEach(btn=>{
+                btn.addEventListener('click', function(e){
                     e.stopPropagation();
-                    const g = e.currentTarget.dataset.grade;
-                    const v = e.currentTarget.dataset.volume;
-                    const key = g + '/' + v;
-                    expandedVolumes[key] = !expandedVolumes[key];
+                    const g=this.dataset.grade, v=this.dataset.volume;
+                    const key=g+'/'+v;
+                    expandedVolumes[key]=!expandedVolumes[key];
                     renderSidebar(); saveState();
                 });
             });
-            document.querySelectorAll('.poem-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = parseInt(btn.dataset.id);
+            document.querySelectorAll('.poem-btn').forEach(btn=>{
+                btn.addEventListener('click', function(){
+                    const id=parseInt(this.dataset.id);
                     selectPoem(id);
                 });
             });
-            totalPoemsCount.textContent = poems.length;
-            updateStats();
         }
 
         // ================================================================
-        // 6. 搜索（防抖）
+        // 6. 搜索
         // ================================================================
         function handleSearch(keyword) {
-            const kw = keyword.trim().toLowerCase();
-            if (!kw) {
-                searchResults.classList.remove('visible');
-                searchClearBtn.classList.remove('visible');
-                gradeAccordion.style.display = 'block';
+            const kw=keyword.trim().toLowerCase();
+            const results=document.getElementById('searchResults');
+            const clear=document.getElementById('searchClearBtn');
+            const accordion=document.getElementById('gradeAccordion');
+            if(!kw){
+                results.classList.remove('visible');
+                clear.classList.remove('visible');
+                accordion.style.display='block';
                 renderSidebar();
                 return;
             }
-            searchClearBtn.classList.add('visible');
-            gradeAccordion.style.display = 'none';
-            const matches = poems.filter(p => 
-                p.title.toLowerCase().includes(kw) || 
-                p.author.toLowerCase().includes(kw) ||
-                p.grade.toLowerCase().includes(kw) ||
-                p.volume.toLowerCase().includes(kw) ||
-                p.subcategory.toLowerCase().includes(kw)
-            );
-            if (!matches.length) {
-                searchResults.innerHTML = '<div class="no-result">未找到匹配篇目</div>';
+            clear.classList.add('visible');
+            accordion.style.display='none';
+            const matches=poems.filter(p=>p.title.toLowerCase().includes(kw)||p.author.toLowerCase().includes(kw)||p.grade.toLowerCase().includes(kw)||p.volume.toLowerCase().includes(kw)||p.subcategory.toLowerCase().includes(kw));
+            if(!matches.length){
+                results.innerHTML='<div class="no-result">未找到匹配篇目</div>';
             } else {
-                let html = '';
-                matches.forEach(p => {
-                    const isMastered = mastered.includes(p.id);
-                    html += `<button class="poem-btn ${p.id===currentId?'active':''}" data-id="${p.id}">
-                        <span class="result-title">${highlightText(p.title, kw)} ${isMastered ? '⭐' : ''}</span>
+                let html='';
+                matches.forEach(p=>{
+                    const isMastered=mastered.includes(p.id);
+                    html+=`<button class="poem-btn ${p.id===currentId?'active':''}" data-id="${p.id}">
+                        <span class="result-title">${highlightText(p.title, kw)} ${isMastered?'⭐':''}</span>
                         <span class="result-meta">${highlightText(p.author, kw)} · ${escapeHtml(p.grade+p.volume+' '+p.subcategory)}</span>
                     </button>`;
                 });
-                searchResults.innerHTML = html;
-                searchResults.querySelectorAll('.poem-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const id = parseInt(btn.dataset.id);
-                        searchInput.value = '';
-                        searchClearBtn.classList.remove('visible');
-                        searchResults.classList.remove('visible');
-                        gradeAccordion.style.display = 'block';
+                results.innerHTML=html;
+                results.querySelectorAll('.poem-btn').forEach(btn=>{
+                    btn.addEventListener('click', function(){
+                        const id=parseInt(this.dataset.id);
+                        document.getElementById('searchInput').value='';
+                        clear.classList.remove('visible');
+                        results.classList.remove('visible');
+                        accordion.style.display='block';
                         selectPoem(id);
                     });
                 });
             }
-            searchResults.classList.add('visible');
+            results.classList.add('visible');
         }
-
         function highlightText(text, keyword) {
-            if (!text || !keyword) return escapeHtml(text);
-            const lower = text.toLowerCase();
-            const kw = keyword.toLowerCase();
-            let result = '', last=0, idx=lower.indexOf(kw);
-            while (idx !== -1) {
-                result += escapeHtml(text.substring(last, idx));
-                result += '<mark>' + escapeHtml(text.substring(idx, idx+kw.length)) + '</mark>';
-                last = idx + kw.length;
-                idx = lower.indexOf(kw, last);
+            if(!text||!keyword) return escapeHtml(text);
+            const lower=text.toLowerCase(), kw=keyword.toLowerCase();
+            let result='', last=0, idx=lower.indexOf(kw);
+            while(idx!==-1){
+                result+=escapeHtml(text.substring(last,idx));
+                result+='<mark>'+escapeHtml(text.substring(idx,idx+kw.length))+'</mark>';
+                last=idx+kw.length;
+                idx=lower.indexOf(kw,last);
             }
-            result += escapeHtml(text.substring(last));
+            result+=escapeHtml(text.substring(last));
             return result;
         }
-
-        const debouncedSearch = debounce(handleSearch, 300);
+        const debouncedSearch=debounce(handleSearch,300);
 
         // ================================================================
-        // 7. 统计 & 错题本
+        // 7. 仪表盘
         // ================================================================
-        function updateStats() {
-            const masteredSet = new Set(mastered);
-            masteredCount.textContent = masteredSet.size;
-            totalAttempts.textContent = history.length;
+        function updateAllStats() {
+            document.getElementById('dashTotal').textContent = poems.length;
+            document.getElementById('dashMastered').textContent = mastered.length;
+            document.getElementById('dashAttempts').textContent = history.length;
+            const avg = history.length ? Math.round(history.reduce((s,h)=>s+h.accuracy,0)/history.length*10)/10 : 0;
+            document.getElementById('dashAccuracy').textContent = avg + '%';
+            document.getElementById('achievementBadge').textContent = '🏅 ' + unlockedAchievements.length;
+            document.getElementById('streakBadge').textContent = '🔥 ' + getConsecutiveDays() + '天';
+            drawTrendChart();
+            renderMasteryGrid();
         }
 
+        function getConsecutiveDays() {
+            if (!history.length) return 0;
+            const dates = history.map(h=>new Date(h.timestamp).toDateString());
+            const unique = [...new Set(dates)].sort();
+            if (!unique.length) return 0;
+            let count = 0;
+            let check = new Date();
+            while (unique.includes(check.toDateString())) {
+                count++;
+                check.setDate(check.getDate()-1);
+            }
+            return count;
+        }
+
+        function drawTrendChart() {
+            const canvas = document.getElementById('trendChart');
+            const ctx = canvas.getContext('2d');
+            const W = canvas.parentElement.clientWidth - 24;
+            const H = 130;
+            canvas.width = W * (window.devicePixelRatio||1);
+            canvas.height = H * (window.devicePixelRatio||1);
+            canvas.style.width = W + 'px';
+            canvas.style.height = H + 'px';
+            ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+            ctx.clearRect(0,0,W,H);
+
+            const days = 7;
+            const now = Date.now();
+            const dayMs = 86400000;
+            const data = [];
+            for (let i=days-1; i>=0; i--) {
+                const start = now - i*dayMs;
+                const end = start + dayMs;
+                const dayHist = history.filter(h => h.timestamp >= start && h.timestamp < end);
+                const avg = dayHist.length ? Math.round(dayHist.reduce((s,h)=>s+h.accuracy,0)/dayHist.length*10)/10 : null;
+                data.push(avg);
+            }
+
+            const padding = { top:10, bottom:22, left:10, right:10 };
+            const chartW = W - padding.left - padding.right;
+            const chartH = H - padding.top - padding.bottom;
+            const maxVal = 100, minVal = 0;
+
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() || '#d4c8b8';
+            ctx.lineWidth = 0.5;
+            for (let i=0; i<=4; i++) {
+                const y = padding.top + chartH - (i/4)*chartH;
+                ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(W-padding.right, y); ctx.stroke();
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-light').trim() || '#6b5b4e';
+                ctx.font = '10px sans-serif';
+                ctx.fillText((i*25)+'%', 2, y-2);
+            }
+
+            const validData = data.map(d=>d!==null?d:0);
+            const points = validData.map((val, i) => {
+                const x = padding.left + (i/(days-1))*chartW;
+                const y = padding.top + chartH - ((val-minVal)/(maxVal-minVal))*chartH;
+                return {x, y, val};
+            });
+
+            ctx.beginPath();
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#8b5e3c';
+            ctx.lineWidth = 2.5;
+            points.forEach((p, i) => {
+                if (i===0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.stroke();
+
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, 2*Math.PI);
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#8b5e3c';
+                ctx.fill();
+                if (p.val !== null && p.val > 0) {
+                    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-light').trim() || '#6b5b4e';
+                    ctx.font = '9px sans-serif';
+                    ctx.fillText(p.val+'%', p.x-10, p.y-8);
+                }
+            });
+
+            const dateLabels = [];
+            for (let i=days-1; i>=0; i--) {
+                const d = new Date(now - i*dayMs);
+                dateLabels.push((d.getMonth()+1)+'/'+d.getDate());
+            }
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-light').trim() || '#6b5b4e';
+            ctx.font = '9px sans-serif';
+            ctx.textAlign = 'center';
+            points.forEach((p, i) => {
+                ctx.fillText(dateLabels[i], p.x, H-3);
+            });
+        }
+
+        function renderMasteryGrid() {
+            const grid = document.getElementById('masteryGrid');
+            const groups = {};
+            poems.forEach(p=>{
+                const key = p.grade + '-' + p.subcategory;
+                if(!groups[key]) groups[key]={poems:[], mastered:0};
+                groups[key].poems.push(p);
+                if(mastered.includes(p.id)) groups[key].mastered++;
+            });
+            let html='';
+            for(const [key, val] of Object.entries(groups)){
+                const ratio = val.poems.length ? val.mastered/val.poems.length : 0;
+                let cls='poor';
+                if(ratio>=0.8) cls='mastered';
+                else if(ratio>=0.4) cls='partial';
+                html+=`<div class="mastery-cell ${cls}" title="${key}: ${val.mastered}/${val.poems.length}">${key.split('-')[0]}<br>${Math.round(ratio*100)}%</div>`;
+            }
+            grid.innerHTML = html || '<div style="color:var(--text-light);">暂无数据</div>';
+        }
+
+        // ================================================================
+        // 8. 复习引擎
+        // ================================================================
+        function renderReviewQueue() {
+            const container = document.getElementById('reviewQueueContainer');
+            const queue = generateReviewQueue();
+            if (!queue.length) {
+                container.innerHTML = '<div style="color:var(--text-light); text-align:center; padding:24px;">🎉 暂无复习推荐，继续学习吧！</div>';
+                return;
+            }
+            let html = '<div class="review-queue">';
+            queue.forEach((item) => {
+                const poem = poems.find(p=>p.id===item.id);
+                if (!poem) return;
+                const priority = item.priority > 80 ? '🔴 紧急' : item.priority > 50 ? '🟡 建议' : '🟢 巩固';
+                html += `
+                    <div class="review-item" data-id="${item.id}">
+                        <span class="title">${escapeHtml(poem.title)}</span>
+                        <span class="priority">${priority}</span>
+                    </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            container.querySelectorAll('.review-item').forEach(el=>{
+                el.addEventListener('click', function(){
+                    const id = parseInt(this.dataset.id);
+                    selectPoem(id);
+                    switchTab('library');
+                });
+            });
+        }
+
+        function generateReviewQueue() {
+            const scores = poems.map(p => {
+                const pHist = history.filter(h=>h.poemId===p.id);
+                if (!pHist.length) return { id: p.id, priority: 40 };
+                const last = pHist[pHist.length-1];
+                const daysSince = (Date.now() - last.timestamp) / 86400000;
+                const wrongCount = pHist.filter(h=>h.accuracy<100).length;
+                const totalCount = pHist.length;
+                const errorRate = totalCount ? wrongCount / totalCount : 0;
+                const masteredFlag = mastered.includes(p.id) ? 0 : 20;
+                let priority = 20 + Math.min(daysSince * 8, 40) + errorRate * 30 + masteredFlag;
+                priority = Math.min(Math.round(priority), 100);
+                return { id: p.id, priority };
+            });
+            scores.sort((a,b)=>b.priority-a.priority);
+            return scores.slice(0,5);
+        }
+
+        // ================================================================
+        // 9. 成就
+        // ================================================================
+        function checkAchievements() {
+            let changed = false;
+            ACHIEVEMENTS.forEach(a=>{
+                if (!unlockedAchievements.includes(a.id) && a.check()) {
+                    unlockedAchievements.push(a.id);
+                    changed = true;
+                    setTimeout(()=>{
+                        alert(`🏆 解锁成就：${a.icon} ${a.name}\n${a.desc}`);
+                    }, 500);
+                }
+            });
+            if (changed) {
+                saveState();
+                renderAchievements();
+                updateAllStats();
+            }
+        }
+
+        function renderAchievements() {
+            const grid = document.getElementById('achievementGrid');
+            let html = '';
+            ACHIEVEMENTS.forEach(a=>{
+                const unlocked = unlockedAchievements.includes(a.id);
+                html += `<div class="achievement-card ${unlocked?'unlocked':''}">
+                    <div class="icon">${a.icon}</div>
+                    <div class="name">${a.name}</div>
+                    <div class="desc">${a.desc}</div>
+                    ${unlocked?'✅ 已解锁':'🔒 未解锁'}
+                </div>`;
+            });
+            grid.innerHTML = html;
+        }
+
+        // ================================================================
+        // 10. 错题本
+        // ================================================================
         function updateWrongDisplay() {
             const total = Object.keys(wrongChars).length;
-            wrongCountDisplay.textContent = `共 ${total} 个错字`;
+            document.getElementById('wrongCountDisplay').textContent = `共 ${total} 个错字`;
         }
 
         function reviewWrong() {
             const keys = Object.keys(wrongChars);
             if (!keys.length) { alert('🎉 错题本为空，继续加油！'); return; }
-            const key = keys[Math.floor(Math.random() * keys.length)];
+            const key = keys[Math.floor(Math.random()*keys.length)];
             const target = key.startsWith('【漏】') ? key.replace('【漏】','') : key;
-            const found = poems.find(p => p.text.includes(target));
+            const found = poems.find(p=>p.text.includes(target));
             if (found) {
                 selectPoem(found.id);
                 alert(`🔁 复习错字：“${target}” （来自“${found.title}”），请重新默写！`);
-                inputText.focus();
+                document.getElementById('inputText').focus();
             } else {
-                if (poems.length) selectPoem(poems[0].id);
+                if(poems.length) selectPoem(poems[0].id);
                 alert(`错字“${target}”未找到对应篇目，请手动复习。`);
             }
         }
@@ -1260,109 +1675,181 @@
         }
 
         // ================================================================
-        // 8. 考试模式
+        // 11. 切换面板
         // ================================================================
-        function startExam() {
-            if (poems.length < 5) { alert('题库少于5篇，无法考试'); return; }
-            const shuffled = [...poems].sort(() => Math.random() - 0.5);
-            examQueue = shuffled.slice(0, 5);
-            examResults = [];
-            examMode = true;
-            alert(`📝 考试模式：共 ${examQueue.length} 篇，请依次默写！`);
-            selectPoem(examQueue[0].id);
-            examModeBtn.textContent = `📝 考试中 (${examResults.length+1}/${examQueue.length})`;
+        function switchTab(tab) {
+            document.querySelectorAll('.sidebar-tabs button').forEach(b=>b.classList.remove('active'));
+            document.querySelectorAll('.sidebar-panel').forEach(p=>p.classList.add('hidden'));
+            document.querySelector(`.sidebar-tabs button[data-tab="${tab}"]`).classList.add('active');
+            document.getElementById('panel'+tab.charAt(0).toUpperCase()+tab.slice(1)).classList.remove('hidden');
+            if (tab === 'dashboard') updateAllStats();
+            if (tab === 'review') renderReviewQueue();
         }
 
-        function handleExamCheck() {
-            if (!examMode || !examQueue.length) return;
-            const poem = poems.find(p => p.id === currentId);
-            if (!poem) return;
-            const user = inputText.value;
-            if (user.trim().length === 0) { alert('请先输入默写内容！'); return; }
-            const orig = poem.text;
-            const origArr = Array.from(orig);
-            const userArr = Array.from(user);
-            const result = diffChars(origArr, userArr);
-            examResults.push({ title: poem.title, accuracy: result.accuracy });
-            displayResult(result);
-            history.push({
-                poemId: poem.id,
-                timestamp: Date.now(),
-                accuracy: result.accuracy,
-                replaces: result.replaces,
-                deletes: result.deletes,
-                inserts: result.inserts,
-                totalChars: result.total
+        // ================================================================
+        // 12. 导出报告（包含完整userInput）
+        // ================================================================
+        function exportReport() {
+            const masteredSet = new Set(mastered);
+            const total = poems.length;
+            const masteredCount = masteredSet.size;
+            const avg = history.length ? Math.round(history.reduce((s,h)=>s+h.accuracy,0)/history.length*10)/10 : 0;
+            const streak = getConsecutiveDays();
+            let html = `
+            <html><head><meta charset="UTF-8"><title>学习报告</title>
+            <style>body{font-family:Georgia,serif;background:#f5f0e8;color:#2c2c2c;padding:40px;max-width:1000px;margin:auto;}
+            h1{color:#8b5e3c;border-bottom:2px solid #8b5e3c;padding-bottom:10px;}
+            .stat{display:flex;gap:30px;flex-wrap:wrap;margin:20px 0;}
+            .stat div{background:#fff;padding:12px 24px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+            .stat .num{font-size:1.8rem;font-weight:700;color:#8b5e3c;}
+            table{width:100%;border-collapse:collapse;margin-top:20px;}
+            th,td{border:1px solid #d4c8b8;padding:8px 12px;text-align:left;vertical-align:top;}
+            th{background:#e8e0d8;}
+            .mastered{color:#2e7d32;}
+            .wrong{color:#c62828;}
+            .user-input{font-family:monospace;white-space:pre-wrap;font-size:0.9rem;max-width:400px;word-break:break-all;background:#f9f6f0;padding:6px;border-radius:4px;}
+            .draft-info{background:#fff3cd;padding:8px 12px;border-radius:8px;margin:16px 0;}
+            </style></head><body>
+            <h1>📜 古诗文默写 · 学习报告</h1>
+            <p>生成日期：${new Date().toLocaleString()}</p>
+            <div class="stat">
+                <div>总篇目 <div class="num">${total}</div></div>
+                <div>已掌握 <div class="num">${masteredCount}</div></div>
+                <div>平均正确率 <div class="num">${avg}%</div></div>
+                <div>连续学习 <div class="num">${streak}天</div></div>
+                <div>练习次数 <div class="num">${history.length}</div></div>
+            </div>
+            <h2>📖 篇目掌握情况</h2>
+            <table>
+            <tr><th>篇目</th><th>作者</th><th>年级</th><th>状态</th><th>练习次数</th><th>上次正确率</th></tr>`;
+            poems.forEach(p=>{
+                const pHist=history.filter(h=>h.poemId===p.id);
+                const last=pHist.length?pHist[pHist.length-1].accuracy:'-';
+                const status=masteredSet.has(p.id)?'⭐ 已掌握':'📝 学习中';
+                html+=`<tr><td>${escapeHtml(p.title)}</td><td>${escapeHtml(p.author)}</td><td>${p.grade}</td><td>${status}</td><td>${pHist.length}</td><td>${last}%</td></tr>`;
             });
-            saveState();
-            updateStats();
-
-            const idx = examResults.length;
-            if (idx < examQueue.length) {
-                alert(`✅ 第 ${idx} 篇完成！正确率 ${result.accuracy}%。点击确定继续下一篇。`);
-                selectPoem(examQueue[idx].id);
-                examModeBtn.textContent = `📝 考试中 (${idx+1}/${examQueue.length})`;
-            } else {
-                examMode = false;
-                const avg = examResults.reduce((s,r) => s + r.accuracy, 0) / examResults.length;
-                let summary = `📊 考试结束！\n平均正确率：${avg.toFixed(1)}%\n\n`;
-                examResults.forEach((r,i) => {
-                    summary += `${i+1}. ${r.title} : ${r.accuracy}%\n`;
+            html+=`</table>
+            <h2>📕 错题集</h2><ul>`;
+            const wrongKeys=Object.keys(wrongChars);
+            if(wrongKeys.length){
+                wrongKeys.forEach(k=>{
+                    html+=`<li>${escapeHtml(k)}：出现 ${wrongChars[k].count} 次</li>`;
                 });
-                alert(summary);
-                examModeBtn.textContent = '📝 考试模式(5篇)';
-                examQueue = [];
-                examResults = [];
-                if (poems.length) selectPoem(poems[0].id);
+            } else {
+                html+=`<li>🎉 没有错题，太棒了！</li>`;
             }
+            html+=`</ul>
+            <h2>📝 最近练习记录（最近10次，含完整默写原文）</h2>
+            <table>
+            <tr><th>时间</th><th>篇目</th><th>正确率</th><th>你的默写（完整）</th></tr>`;
+            const recent = history.slice(-10).reverse();
+            recent.forEach(h=>{
+                const time = new Date(h.timestamp).toLocaleString();
+                const title = h.poemTitle || poems.find(p=>p.id===h.poemId)?.title || '未知';
+                const fullText = h.userInput || '(未记录)';
+                html+=`<tr><td>${time}</td><td>${escapeHtml(title)}</td><td>${h.accuracy}%</td><td class="user-input">${escapeHtml(fullText)}</td></tr>`;
+            });
+            html+=`</table>
+            <div class="draft-info">💡 提示：当前各篇目的草稿（未提交的内容）已包含在“导出进度”的JSON文件中，此处不展示。</div>
+            </body></html>`;
+            const blob = new Blob([html], {type:'text/html'});
+            const a=document.createElement('a');
+            a.href=URL.createObjectURL(blob);
+            a.download=`学习报告_${new Date().toISOString().slice(0,10)}.html`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
 
         // ================================================================
-        // 9. 随机 & 语音
+        // 13. 导出进度数据 (JSON) - 包含完整userInput + draft
         // ================================================================
-        function randomPoem() {
-            if (!poems.length) return;
-            const idx = Math.floor(Math.random() * poems.length);
-            selectPoem(poems[idx].id);
+        function exportProgressData() {
+            // 先保存当前草稿
+            saveDraft();
+            const data = {
+                version: '2.0',
+                exportDate: new Date().toISOString(),
+                history: history,       // 每条包含 userInput
+                wrongChars: wrongChars,
+                mastered: mastered,
+                draft: draft,           // 所有篇目的草稿
+                stats: {
+                    totalPoems: poems.length,
+                    totalAttempts: history.length,
+                    masteredCount: mastered.length
+                }
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `学习进度_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            alert('✅ 进度数据导出成功！包含所有已提交记录和当前所有篇目的草稿。');
         }
 
-        function speakPoem() {
-            const poem = poems.find(p => p.id === currentId);
-            if (!poem) return;
-            if (isSpeaking) { window.speechSynthesis?.cancel(); isSpeaking = false; speakBtn.textContent = '🔊 朗读'; return; }
-            if (!window.speechSynthesis) { alert('浏览器不支持语音朗读'); return; }
-            const utter = new SpeechSynthesisUtterance(poem.text);
-            utter.lang = 'zh-CN';
-            utter.rate = 0.9;
-            utter.pitch = 1;
-            isSpeaking = true;
-            speakBtn.textContent = '🔊 停止';
-            utter.onend = () => { isSpeaking = false; speakBtn.textContent = '🔊 朗读'; };
-            utter.onerror = () => { isSpeaking = false; speakBtn.textContent = '🔊 朗读'; };
-            window.speechSynthesis.speak(utter);
+        // ================================================================
+        // 14. 导入进度数据 (JSON) - 恢复 draft
+        // ================================================================
+        function importProgressData(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.history || !Array.isArray(data.history)) throw new Error('缺少历史记录数据');
+                    if (!data.wrongChars || typeof data.wrongChars !== 'object') throw new Error('缺少错题数据');
+                    if (!data.mastered || !Array.isArray(data.mastered)) throw new Error('缺少掌握数据');
+                    // draft 可选
+                    if (!confirm(`即将导入以下数据：\n- 历史记录 ${data.history.length} 条\n- 错字数 ${Object.keys(data.wrongChars).length}\n- 已掌握 ${data.mastered.length} 篇\n- 草稿 ${data.draft ? Object.keys(data.draft).length : 0} 篇\n\n确定要覆盖当前进度吗？`)) return;
+                    history = data.history;
+                    wrongChars = data.wrongChars;
+                    mastered = data.mastered;
+                    mastered = mastered.filter(id => poems.some(p=>p.id===id));
+                    // 恢复草稿
+                    if (data.draft && typeof data.draft === 'object') {
+                        draft = data.draft;
+                        // 只保留当前题库中存在的篇目草稿
+                        const validIds = new Set(poems.map(p=>p.id));
+                        Object.keys(draft).forEach(key => {
+                            if (!validIds.has(parseInt(key))) delete draft[key];
+                        });
+                    } else {
+                        draft = {};
+                    }
+                    // 如果当前篇目有草稿，刷新输入框
+                    if (currentId && draft[currentId]) {
+                        document.getElementById('inputText').value = draft[currentId];
+                    }
+                    saveState();
+                    updateAllStats();
+                    updateWrongDisplay();
+                    renderSidebar();
+                    renderReviewQueue();
+                    alert('✅ 进度数据导入成功！草稿已恢复。');
+                } catch (err) {
+                    alert('❌ 导入失败：' + err.message);
+                }
+            };
+            reader.readAsText(file);
         }
 
         // ================================================================
-        // 10. 题库管理
+        // 15. 题库管理（原样保留）
         // ================================================================
-        function openManage() { manageModal.classList.add('active'); renderManageList(); }
-        function closeManage() { collectManageData(); manageModal.classList.remove('active'); renderSidebar(); updateStats(); saveState(); }
+        function openManage() { document.getElementById('manageModal').classList.add('active'); renderManageList(); }
+        function closeManage() { collectManageData(); document.getElementById('manageModal').classList.remove('active'); renderSidebar(); updateAllStats(); saveState(); }
 
         function renderManageList() {
-            if (!poems.length) { poemEditList.innerHTML = '<div class="empty-hint">题库为空，点击"新增"添加。</div>'; return; }
-            let html = '';
-            poems.forEach(p => {
-                const isCustom = !PRESET_SUBCATEGORIES.includes(p.subcategory);
-                html += `
+            if(!poems.length){ document.getElementById('poemEditList').innerHTML='<div class="empty-hint">题库为空，点击"新增"添加。</div>'; return; }
+            let html='';
+            poems.forEach(p=>{
+                const isCustom=!['课内古诗词','课内文言文','课外古诗词诵读','其他'].includes(p.subcategory);
+                html+=`
                     <div class="poem-edit-item" data-id="${p.id}">
                         <div class="field-row">
-                            <label>年级</label>
-                            <select class="edit-grade">${PRESET_GRADES.map(g => `<option value="${g}" ${p.grade===g?'selected':''}>${g}</option>`).join('')}</select>
-                            <label>册次</label>
-                            <select class="edit-volume">${PRESET_VOLUMES.map(v => `<option value="${v}" ${p.volume===v?'selected':''}>${v}</option>`).join('')}</select>
+                            <label>年级</label><select class="edit-grade">${['七年级','八年级','九年级'].map(g=>`<option value="${g}" ${p.grade===g?'selected':''}>${g}</option>`).join('')}</select>
+                            <label>册次</label><select class="edit-volume">${['上册','下册'].map(v=>`<option value="${v}" ${p.volume===v?'selected':''}>${v}</option>`).join('')}</select>
                             <label>分类</label>
                             <select class="edit-subcategory">
-                                ${PRESET_SUBCATEGORIES.map(s => `<option value="${s}" ${p.subcategory===s?'selected':''}>${s}</option>`).join('')}
+                                ${['课内古诗词','课内文言文','课外古诗词诵读','其他'].map(s=>`<option value="${s}" ${p.subcategory===s?'selected':''}>${s}</option>`).join('')}
                                 <option value="__custom__" ${isCustom?'selected':''}>自定义...</option>
                             </select>
                             <input type="text" class="custom-subcat-input ${isCustom?'visible':''}" placeholder="自定义分类" value="${isCustom?escapeHtml(p.subcategory):''}">
@@ -1373,50 +1860,48 @@
                         <div style="text-align:right;"><button class="delete-btn" data-id="${p.id}">🗑️ 删除</button></div>
                     </div>`;
             });
-            poemEditList.innerHTML = html;
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const id = parseInt(e.target.dataset.id);
-                    if (!confirm('删除此篇？')) return;
-                    poems = poems.filter(p => p.id !== id);
-                    if (currentId === id) currentId = poems.length ? poems[0].id : null;
+            document.getElementById('poemEditList').innerHTML=html;
+            document.querySelectorAll('.delete-btn').forEach(btn=>{
+                btn.addEventListener('click', function(){
+                    const id=parseInt(this.dataset.id);
+                    if(!confirm('删除此篇？')) return;
+                    poems=poems.filter(p=>p.id!==id);
+                    if(currentId===id) currentId=poems.length?poems[0].id:null;
                     renderManageList(); renderSidebar(); saveState();
                 });
             });
-            document.querySelectorAll('.edit-subcategory').forEach(sel => {
-                sel.addEventListener('change', (e) => {
-                    const item = e.target.closest('.poem-edit-item');
-                    const custom = item.querySelector('.custom-subcat-input');
-                    if (e.target.value === '__custom__') custom.classList.add('visible');
+            document.querySelectorAll('.edit-subcategory').forEach(sel=>{
+                sel.addEventListener('change', function(){
+                    const item=this.closest('.poem-edit-item');
+                    const custom=item.querySelector('.custom-subcat-input');
+                    if(this.value==='__custom__') custom.classList.add('visible');
                     else custom.classList.remove('visible');
                 });
             });
         }
 
         function collectManageData() {
-            const items = document.querySelectorAll('.poem-edit-item');
-            const newList = [];
-            items.forEach(item => {
-                const id = parseInt(item.dataset.id);
-                const grade = item.querySelector('.edit-grade').value.trim() || '七年级';
-                const volume = item.querySelector('.edit-volume').value.trim() || '上册';
-                let subcat = item.querySelector('.edit-subcategory').value;
-                if (subcat === '__custom__') {
-                    subcat = item.querySelector('.custom-subcat-input').value.trim() || '自定义';
-                }
-                const title = item.querySelector('.edit-title').value.trim() || '无标题';
-                const author = item.querySelector('.edit-author').value.trim() || '未知';
-                const text = item.querySelector('.edit-text').value;
-                newList.push({ id, title, author, grade, volume, subcategory: subcat, text });
+            const items=document.querySelectorAll('.poem-edit-item');
+            const newList=[];
+            items.forEach(item=>{
+                const id=parseInt(item.dataset.id);
+                const grade=item.querySelector('.edit-grade').value.trim()||'七年级';
+                const volume=item.querySelector('.edit-volume').value.trim()||'上册';
+                let subcat=item.querySelector('.edit-subcategory').value;
+                if(subcat==='__custom__') subcat=item.querySelector('.custom-subcat-input').value.trim()||'自定义';
+                const title=item.querySelector('.edit-title').value.trim()||'无标题';
+                const author=item.querySelector('.edit-author').value.trim()||'未知';
+                const text=item.querySelector('.edit-text').value;
+                newList.push({id, title, author, grade, volume, subcategory:subcat, text});
             });
-            poems = newList;
-            poems.forEach((p, idx) => p.id = idx + 1);
-            nextId = poems.length + 1;
-            if (!poems.find(p => p.id === currentId)) currentId = poems.length ? poems[0].id : null;
+            poems=newList;
+            poems.forEach((p,idx)=>p.id=idx+1);
+            nextId=poems.length+1;
+            if(!poems.find(p=>p.id===currentId)) currentId=poems.length?poems[0].id:null;
         }
 
         function addPoem() {
-            const newP = { id: nextId++, title: '新篇目', author: '未知', grade: '七年级', volume: '上册', subcategory: '其他', text: '请输入正文...' };
+            const newP={id:nextId++, title:'新篇目', author:'未知', grade:'七年级', volume:'上册', subcategory:'其他', text:'请输入正文...'};
             poems.push(newP);
             renderManageList();
             saveState();
@@ -1424,128 +1909,149 @@
 
         function exportData() {
             collectManageData();
-            const blob = new Blob([JSON.stringify(poems, null, 2)], { type:'application/json' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `古诗文题库_${new Date().toISOString().slice(0,10)}.json`;
+            const blob=new Blob([JSON.stringify(poems,null,2)], {type:'application/json'});
+            const a=document.createElement('a');
+            a.href=URL.createObjectURL(blob);
+            a.download=`古诗文题库_${new Date().toISOString().slice(0,10)}.json`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
             alert('导出成功！');
         }
 
         function importData(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    if (!Array.isArray(data)) throw new Error('格式错误');
-                    poems = data.map((p, idx) => ({ ...p, id: idx+1 }));
-                    nextId = poems.length + 1;
-                    currentId = poems.length ? poems[0].id : null;
+            const reader=new FileReader();
+            reader.onload=function(e){
+                try{
+                    const data=JSON.parse(e.target.result);
+                    if(!Array.isArray(data)) throw new Error('格式错误');
+                    poems=data.map((p,idx)=>({...p,id:idx+1}));
+                    nextId=poems.length+1;
+                    currentId=poems.length?poems[0].id:null;
                     renderManageList(); renderSidebar(); saveState();
                     alert('导入成功！');
-                } catch(err) { alert('导入失败: '+err.message); }
+                } catch(err){ alert('导入失败: '+err.message); }
             };
             reader.readAsText(file);
         }
 
         function restoreDefault() {
-            if (!confirm('恢复默认将丢失所有自定义修改！')) return;
-            poems = JSON.parse(JSON.stringify(INITIAL_POEMS));
-            nextId = poems.length + 1;
-            currentId = poems.length ? poems[0].id : null;
-            expandedGrades = {}; expandedVolumes = {};
+            if(!confirm('恢复默认将丢失所有自定义修改！')) return;
+            poems=JSON.parse(JSON.stringify(INITIAL_POEMS));
+            nextId=poems.length+1;
+            currentId=poems.length?poems[0].id:null;
+            expandedGrades={}; expandedVolumes={};
             renderManageList(); renderSidebar(); saveState();
             alert('已恢复默认题库。');
         }
 
         // ================================================================
-        // 11. 草稿自动保存
-        // ================================================================
-        function saveDraft() {
-            if (currentId) {
-                const val = inputText.value;
-                if (val.trim()) draft[currentId] = val;
-                else delete draft[currentId];
-                saveState();
-            }
-        }
-        const debouncedDraft = debounce(saveDraft, 500);
-
-        // ================================================================
-        // 12. 事件绑定
+        // 16. 初始化
         // ================================================================
         function init() {
             loadState();
 
-            // 主题
-            themeToggleBtn.addEventListener('click', toggleTheme);
-            // 搜索
-            searchInput.addEventListener('input', (e) => debouncedSearch(e.target.value));
-            searchClearBtn.addEventListener('click', () => {
-                searchInput.value = '';
-                searchClearBtn.classList.remove('visible');
-                searchResults.classList.remove('visible');
-                gradeAccordion.style.display = 'block';
+            document.querySelectorAll('.sidebar-tabs button').forEach(btn=>{
+                btn.addEventListener('click', function(){ switchTab(this.dataset.tab); });
+            });
+
+            document.getElementById('searchInput').addEventListener('input', function(e){ debouncedSearch(e.target.value); });
+            document.getElementById('searchClearBtn').addEventListener('click', function(){
+                document.getElementById('searchInput').value='';
+                this.classList.remove('visible');
+                document.getElementById('searchResults').classList.remove('visible');
+                document.getElementById('gradeAccordion').style.display='block';
                 renderSidebar();
             });
-            // 按钮
-            checkBtn.addEventListener('click', () => {
-                if (examMode) handleExamCheck();
+
+            document.getElementById('checkBtn').addEventListener('click', function(){
+                if(examMode) handleExamCheck();
                 else checkDictation();
             });
-            resetBtn.addEventListener('click', resetPoem);
-            clearBtn.addEventListener('click', clearAll);
-            toggleOriginalBtn.addEventListener('click', toggleOriginal);
-            toggleViewBtn.addEventListener('click', toggleCompare);
-            masteredBtn.addEventListener('click', toggleMastered);
-            randomBtn.addEventListener('click', randomPoem);
-            speakBtn.addEventListener('click', speakPoem);
-            examModeBtn.addEventListener('click', () => {
-                if (examMode) {
-                    if (!confirm('退出当前考试？')) return;
-                    examMode = false; examQueue = []; examResults = [];
-                    examModeBtn.textContent = '📝 考试模式(5篇)';
-                    if (poems.length) selectPoem(poems[0].id);
+            document.getElementById('resetBtn').addEventListener('click', resetPoem);
+            document.getElementById('clearBtn').addEventListener('click', clearAll);
+            document.getElementById('toggleOriginalBtn').addEventListener('click', toggleOriginal);
+            document.getElementById('toggleViewBtn').addEventListener('click', toggleCompare);
+            document.getElementById('masteredBtn').addEventListener('click', toggleMastered);
+            document.getElementById('randomBtn').addEventListener('click', randomPoem);
+            document.getElementById('speakBtn').addEventListener('click', speakPoem);
+            document.getElementById('examModeBtn').addEventListener('click', function(){
+                if(examMode){
+                    if(!confirm('退出当前考试？')) return;
+                    examMode=false; examQueue=[]; examResults=[];
+                    this.textContent='📝 考试(5篇)';
+                    if(poems.length) selectPoem(poems[0].id);
                 } else {
                     startExam();
                 }
             });
-            reviewWrongBtn.addEventListener('click', reviewWrong);
-            clearWrongBtn.addEventListener('click', clearWrong);
+            document.getElementById('focusToggleBtn').addEventListener('click', toggleFocus);
+            document.getElementById('hintBtn').addEventListener('click', giveHint);
+            document.getElementById('reviewWrongBtn').addEventListener('click', reviewWrong);
+            document.getElementById('clearWrongBtn').addEventListener('click', clearWrong);
+            document.getElementById('refreshReviewBtn').addEventListener('click', renderReviewQueue);
 
-            // 快捷键 Ctrl+Enter
-            inputText.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                    e.preventDefault();
-                    checkBtn.click();
+            // 导出/导入进度
+            document.getElementById('exportProgressBtn').addEventListener('click', exportProgressData);
+            document.getElementById('importProgressBtn').addEventListener('click', function(){
+                document.getElementById('importProgressInput').click();
+            });
+            document.getElementById('importProgressInput').addEventListener('change', function(e){
+                if(e.target.files.length){
+                    importProgressData(e.target.files[0]);
+                    e.target.value='';
                 }
             });
-            // 草稿自动保存
-            inputText.addEventListener('input', debouncedDraft);
 
-            // 管理
             document.getElementById('openManageBtn').addEventListener('click', openManage);
             document.getElementById('closeManageBtn').addEventListener('click', closeManage);
-            document.getElementById('saveManageBtn').addEventListener('click', () => { collectManageData(); renderSidebar(); updateStats(); saveState(); alert('保存成功！'); });
+            document.getElementById('saveManageBtn').addEventListener('click', function(){
+                collectManageData(); renderSidebar(); updateAllStats(); saveState(); alert('保存成功！');
+            });
             document.getElementById('addPoemBtn').addEventListener('click', addPoem);
             document.getElementById('exportBtn').addEventListener('click', exportData);
-            document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFileInput').click());
-            document.getElementById('importFileInput').addEventListener('change', (e) => {
-                if (e.target.files.length) { importData(e.target.files[0]); e.target.value=''; }
+            document.getElementById('importBtn').addEventListener('click', function(){ document.getElementById('importFileInput').click(); });
+            document.getElementById('importFileInput').addEventListener('change', function(e){
+                if(e.target.files.length){ importData(e.target.files[0]); e.target.value=''; }
             });
             document.getElementById('restoreDefaultBtn').addEventListener('click', restoreDefault);
-            manageModal.addEventListener('click', (e) => { if (e.target === manageModal) closeManage(); });
+            document.getElementById('manageModal').addEventListener('click', function(e){ if(e.target===this) closeManage(); });
 
-            // 系统主题变化
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-                if (theme === 'system') applyTheme('system');
+            document.getElementById('achievementBadge').addEventListener('click', function(){
+                document.getElementById('achievementModal').classList.add('active');
+                renderAchievements();
+            });
+            document.getElementById('closeAchievementModal').addEventListener('click', function(){
+                document.getElementById('achievementModal').classList.remove('active');
+            });
+            document.getElementById('achievementModal').addEventListener('click', function(e){
+                if(e.target===this) this.classList.remove('active');
             });
 
-            // 页面关闭前保存
-            window.addEventListener('beforeunload', () => { saveDraft(); saveState(); });
+            document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+
+            document.getElementById('inputText').addEventListener('keydown', function(e){
+                if((e.ctrlKey||e.metaKey) && e.key==='Enter'){
+                    e.preventDefault();
+                    document.getElementById('checkBtn').click();
+                }
+            });
+            document.getElementById('inputText').addEventListener('input', debouncedDraft);
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(){
+                if(theme==='system') applyTheme('system');
+            });
+
+            document.getElementById('exportReportBtn').addEventListener('click', exportReport);
+
+            window.addEventListener('beforeunload', function(){ saveDraft(); saveState(); });
+
+            let resizeTimer;
+            window.addEventListener('resize', function(){
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(()=>{ drawTrendChart(); }, 300);
+            });
         }
 
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+        if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
         else init();
     })();
 </script>
